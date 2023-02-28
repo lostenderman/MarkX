@@ -4,6 +4,9 @@ namespace MarkXLibrary
 {
 	public static class Together
 	{
+		// TODO add configuration, code
+
+		// TODO classes
 		public static bool CompareResults(string? generated, string? expected)
 		{
 			if (generated == null || expected == null)

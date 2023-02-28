@@ -1,5 +1,6 @@
 namespace MarkXLibrary
 {
+	// TODO make non-static -> current mapping at least
 	public static class Mapping
 	{
 		public static MappingSpecification? DefaultMappingSpecification { get; set; } = new MappingSpecification()
