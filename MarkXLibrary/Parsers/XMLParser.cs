@@ -286,12 +286,12 @@ namespace MarkXLibrary
 			foreach (var child in elementChildren)
 			{
 				var parsedChild = Parse(child, childInheritance);
-				if (parsedChild.Item1 != null)
+				if (parsedChild.lines != null)
 				{
-					sub.AddRange(parsedChild.Item1);
+					sub.AddRange(parsedChild.lines);
 				}
 				childInheritance.Separate = true;
-				if (parsedChild.Item2)
+				if (parsedChild.resetSeparation)
 				{
 					childInheritance.Separate = false;
 				}

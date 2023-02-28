@@ -469,7 +469,7 @@ namespace MarkXLibrary
 					Format = x => {
 						var commentStart = x.IndexOf(ResourceStrings.HtmlCommentStart) + ResourceStrings.HtmlCommentStart.Length;
 						var commentEnd = x.IndexOf(ResourceStrings.HtmlCommentEnd);
-						var inner = x.Substring(commentStart, commentEnd - commentStart);
+						var inner = x[commentStart..commentEnd ];
 						return inner;
 					},
 					NameParts = new List<NamePart>()
@@ -496,7 +496,7 @@ namespace MarkXLibrary
 								}
 								var commentStart = x.IndexOf(ResourceStrings.HtmlCommentStart) + ResourceStrings.HtmlCommentStart.Length;
 								var commentEnd = x.IndexOf(ResourceStrings.HtmlCommentEnd);
-								var inner = x.Substring(commentStart, commentEnd - commentStart);
+								var inner = x[commentStart..commentEnd ];
 								return
 									inner.StartsWith(">") ||
 									inner.StartsWith("->") ||

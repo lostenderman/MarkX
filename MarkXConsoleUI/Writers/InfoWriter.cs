@@ -9,34 +9,42 @@ namespace MarkXConsoleUI
 		private static string IndentLevel1 { get; set; } = "    ";
 		private static string IndentLevel2 { get; set; } = "        ";
 
-		public static void PrintParsingResults(ParseOptions options)
+		public static void PrintParsingResults(ParseOptions options, List<SectionFile>? inputFiles)
 		{
+			if (inputFiles == null)
+			{
+				return;
+			}
 			output = new List<string>();
 
 			AddOpening();
 			output.Add("--------------------------------\n");
-			AddInvalidFiles();
+			AddInvalidFiles(inputFiles);
 			output.Add("--------------------------------\n");
-			AddInvalidXMLs();
+			AddInvalidXMLs(inputFiles);
 			output.Add("--------------------------------\n");
-			AddSummary(false);
+			AddSummary(false, inputFiles);
 
 			Console.WriteLine(string.Join("\n", output));
 		}
 
-		public static void PrintCheckingResults(CheckOptions options)
+		public static void PrintCheckingResults(CheckOptions options, List<SectionFile>? inputFiles)
 		{
+			if (inputFiles == null)
+			{
+				return;
+			}
 			output = new List<string>();
 
 			AddOpening();
 			output.Add("--------------------------------\n");
-			AddInvalidFiles();
+			AddInvalidFiles(inputFiles);
 			output.Add("--------------------------------\n");
-			AddInvalidXMLs();
+			AddInvalidXMLs(inputFiles);
 			output.Add("--------------------------------\n");
-			AddResult(options);
+			AddResult(options, inputFiles);
 			output.Add("--------------------------------\n");
-			AddSummary(true);
+			AddSummary(true, inputFiles);
 
 			Console.WriteLine(string.Join("\n", output));
 		}
@@ -46,10 +54,10 @@ namespace MarkXConsoleUI
 			output.Add("## RESULTS\n");
 		}
 
-		private static void AddInvalidFiles()
+		private static void AddInvalidFiles(List<SectionFile> inputFiles)
 		{
 			output.Add("## INVALID FILES\n");
-			foreach (var inputFile in Program.InputFiles) // TODO
+			foreach (var inputFile in inputFiles) // TODO
 			{
 				if (inputFile.FileType != FileType.Invalid)
 				{
@@ -60,10 +68,10 @@ namespace MarkXConsoleUI
 			}
 		}
 
-		private static void AddInvalidXMLs()
+		private static void AddInvalidXMLs(List<SectionFile> inputFiles)
 		{
 			output.Add("## INVALID XMLS\n");
-			foreach (var inputFile in Program.InputFiles) // TODO
+			foreach (var inputFile in inputFiles) // TODO
 			{
 				if (inputFile.FileType == FileType.Invalid || inputFile.AllTestsAreValid)
 				{
@@ -105,7 +113,7 @@ namespace MarkXConsoleUI
 			}
 		}
 
-		private static void AddResult(CheckOptions options)
+		private static void AddResult(CheckOptions options, List<SectionFile> inputFiles)
 		{
 			output.Add("## FAILING TESTS\n");
 
@@ -115,7 +123,7 @@ namespace MarkXConsoleUI
 				testIndent = "    ";
 			}
 			var testIndex = 0;
-			foreach (var inputFile in Program.InputFiles) // TODO
+			foreach (var inputFile in inputFiles) // TODO
 			{
 				if (inputFile.AllValidTestsPass)
 				{
@@ -229,12 +237,14 @@ namespace MarkXConsoleUI
 			return joinedLines ?? "";
 		}
 
-		private static void AddSummary(bool checking)
+		private static void AddSummary(bool checking, List<SectionFile> inputFiles)
 		{
-			var tests = Program.InputFiles
+			var tests = inputFiles
 				.Where(x => x.FileType != FileType.Invalid)
 				.SelectMany(x => x.Sections)
 				.SelectMany(x => x.Tests);
+
+			var l = tests.ToList();
 
 			var all = tests.Count();
 			var passed = tests.Count(x => x.IsPassing);

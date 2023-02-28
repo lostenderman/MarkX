@@ -6,6 +6,7 @@ namespace MarkXLibrary
 		JSON,
 		PossiblyXML,
 		XML,
-		Invalid
+		Invalid,
+		Unstructured
 	}
 }
