@@ -5,8 +5,8 @@ using System.Text.Json;
 
 namespace MarkXConsoleUI
 {
-    class Program
-    {
+	class Program
+	{
 		static int Main(string[] args)
 		{
 			Parser.Default.ParseArguments<ParseOptions, CheckOptions>(args)
@@ -21,15 +21,19 @@ namespace MarkXConsoleUI
 			return 0;
 		}
 
-		// UI
 		public static void RunParsing(ParseOptions options)
 		{
 			List<SectionFile>? inputFiles = FileLoader.LoadInputFiles(options.Input, Settings.InputDirectoryNestingLevel);
 
 			NormalizeSectionNames(options, inputFiles);
 
-			PrepareSpecification(options);
-			Together.TryParseTests(inputFiles);
+			Mapping.ApplyExtensions(options.Extensions);
+
+			if (options.IndentCode)
+			{
+				Together.DisableElement("fenced_code_block");
+			}
+			TryParseTests(inputFiles);
 
 			if (!options.Quiet)
 			{
@@ -38,7 +42,6 @@ namespace MarkXConsoleUI
 			ExportParsedTests(options, inputFiles);
 		}
 
-		// UI
 		public static void RunChecking(CheckOptions options)
 		{
 			List<SectionFile>? inputFiles = FileLoader.LoadInputFiles(options.Input, Settings.InputDirectoryNestingLevel);
@@ -46,10 +49,16 @@ namespace MarkXConsoleUI
 
 			NormalizeSectionNames(options, inputFiles);
 
-			PrepareSpecification(options);
-			Together.AssignExpectedResult(inputFiles, resultFile, options.OwnResult);
+			Mapping.ApplyExtensions(options.Extensions);
 
-			Together.TryParseTests(inputFiles);
+			if (options.IndentCode)
+			{
+				Together.DisableElement("fenced_code_block");
+			}
+			AssignExpectedResult(inputFiles, resultFile, options.OwnResult);
+
+			TryParseTests(inputFiles);
+			CheckTests(inputFiles);
 
 			if (!options.Quiet)
 			{
@@ -57,7 +66,6 @@ namespace MarkXConsoleUI
 			}
 		}
 
-		// UI
 		public static void ExportParsedTests(ParseOptions options, List<SectionFile>? inputFiles)
 		{
 			if (options.Output == null)
@@ -70,7 +78,7 @@ namespace MarkXConsoleUI
 				ResetSectionNames(inputFiles);
 			}
 
-			var allSections = Together.GroupSections(inputFiles);
+			var allSections = GroupSections(inputFiles);
 			var allValidTests = allSections.SelectMany(x => x.Tests).Where(x => x.IsValid).ToList();
 
 			if (allValidTests.Count() == 1 && options.ParseToFile)
@@ -88,7 +96,6 @@ namespace MarkXConsoleUI
 			Writer.WriteToTree(allSections, options);
 		}
 
-		// LIB
 		public static void ResetSectionNames(List<SectionFile>? inputFiles)
 		{
 			if (inputFiles == null)
@@ -104,21 +111,19 @@ namespace MarkXConsoleUI
 			}
 		}
 
-		// UI
 		public static void CreateJson(List<Section> sections, ParseOptions options)
 		{
 			if (options.Output == null)
 			{
 				return;
 			}
-            string? serialized = JsonSerializer.Serialize(sections);
+			string? serialized = JsonSerializer.Serialize(sections);
 			using (StreamWriter sw = new(options.Output))
 			{
 				sw.WriteLine(serialized);
 			}
 		}
 
-		// LIB
 		public static void NormalizeSectionNames(Options options, List<SectionFile>? inputFiles)
 		{
 			if (inputFiles == null)
@@ -148,20 +153,100 @@ namespace MarkXConsoleUI
 				}
 			}
 		}
-		
-		// LIB
-		public static void PrepareSpecification(Options options)
-		{
-			Mapping.ApplyExtensions(options.Extensions);
 
-			if (options.IndentCode)
+		public static void AssignExpectedResult(List<SectionFile>? inputFiles, SectionFile? resultFile, bool preferOwnResult)
+		{
+			if (inputFiles == null || resultFile == null)
 			{
-				var codeBlockElement = Mapping.DefaultMappingSpecification?.GetMappingDefinitionById("fenced_code_block");
-				if (codeBlockElement != null)
+				return;
+			}
+			var tests = inputFiles
+				.SelectMany(x => x.Sections)
+				.SelectMany(x => x.Tests);
+
+			foreach (var test in tests)
+			{
+				test.Expected = Together.ChooseExpectedResult(test.Expected, resultFile.RawContent, preferOwnResult);
+			}
+		}
+
+		public static void TryParseTests(List<SectionFile>? inputFiles)
+		{
+			if (inputFiles == null)
+			{
+				return;
+			}
+			foreach (var inputFile in inputFiles)
+			{
+				foreach (var section in inputFile.Sections)
 				{
-					codeBlockElement.IsEnabled = false;
+					foreach (var test in section.Tests)
+					{
+						if (test.XML == null)
+						{
+							continue;
+						}
+
+						var parsed = Together.ParseXml(test.XML);
+						if (parsed == null)
+						{
+							if (inputFile.FileType == FileType.PossiblyXML)
+							{
+								inputFile.FileType = FileType.Invalid;
+							}
+							test.IsValid = false;
+						}
+						else
+						{
+							if (inputFile.FileType == FileType.PossiblyXML)
+							{
+								inputFile.FileType = FileType.XML;
+							}
+							test.IsValid = true;
+						}
+						test.Output = parsed;
+					}
 				}
 			}
+		}
+
+		public static void CheckTests(List<SectionFile>? inputFiles)
+		{
+			if (inputFiles == null)
+			{
+				return;
+			}
+			foreach (var inputFile in inputFiles)
+			{
+				foreach (var section in inputFile.Sections)
+				{
+					foreach (var test in section.Tests)
+					{
+						test.IsPassing = Together.CompareResults(test.Output, test.Expected);
+					}
+
+					section.UpdatePassingStatus();
+					section.UpdateValidityStatus();
+				}
+
+				inputFile.UpdatePassingStatus();
+				inputFile.UpdateValidityStatus();
+			}
+		}
+
+		public static List<Section> GroupSections(List<SectionFile>? inputFiles)
+		{
+			var groupedSections = inputFiles?
+				.SelectMany(x => x.Sections)
+				.GroupBy(x => x.Name)
+				.Select(x => new Section()
+				{
+					Name = x.Key,
+					Tests = x.SelectMany(x => x.Tests).ToList()
+				})
+				.ToList();
+
+			return groupedSections ?? new List<Section>();
 		}
 	}
 }

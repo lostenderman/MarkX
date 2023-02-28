@@ -3,8 +3,8 @@ using System.Text.Json;
 
 namespace MarkXConsoleUI
 {
-    public static class FileLoader
-    {
+	public static class FileLoader
+	{
 		public static List<SectionFile>? LoadInputFiles(IEnumerable<string>? inputFilePaths, int inputDirectoryNestingLevel)
 		{
 			if (inputFilePaths == null || !inputFilePaths.Any())
@@ -38,30 +38,30 @@ namespace MarkXConsoleUI
 					}
 				}
 				else
-                {
+				{
 					inputFiles.Add(file);
-                }
+				}
 			}
 
 			return inputFiles;
 		}
 
 		public static SectionFile? LoadFile(string? path, FileType fileStartType)
-        {
+		{
 			if (path == null || !File.Exists(path))
-            {
+			{
 				return null;
-            }
+			}
 
-            SectionFile file = new()
-            {
-                FileInfo = new FileInfo(path)
-            };
-            using (StreamReader sr = file.FileInfo.OpenText())
+			SectionFile file = new()
+			{
+				FileInfo = new FileInfo(path)
+			};
+			using (StreamReader sr = file.FileInfo.OpenText())
 			{
 				file.RawContent = sr.ReadToEnd();
 				if (fileStartType == FileType.PossiblyJSON)
-                {
+				{
 					LoadFileStructure(file);
 				}
 			}

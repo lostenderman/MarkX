@@ -2,75 +2,8 @@
 
 namespace MarkXLibrary
 {
-    public static class Together
-    {
-		public static void TryParseTests(List<SectionFile>? inputFiles)
-		{
-			if (inputFiles == null)
-            {
-				return;
-            }
-			foreach (var inputFile in inputFiles)
-			{
-				foreach (var section in inputFile.Sections)
-				{
-					foreach (var test in section.Tests)
-					{
-						if (test.XML == null)
-						{
-							continue;
-						}
-
-						XElement? root = null;
-						try
-						{
-							root = XElement.Parse(test.XML, LoadOptions.PreserveWhitespace);
-							test.IsValid = true;
-						}
-						catch (Exception)
-						{
-
-						}
-
-						if (root != null)
-						{
-							var parentInheritance = new InheritanceData()
-							{
-								IncludeText = false,
-								Separate = false,
-								Parenthesise = false,
-							};
-							var (lines, resetSeparation) = XMLParser.Parse(root, parentInheritance);
-							if (lines != null)
-							{
-								test.Output = string.Join("\n", lines);
-								test.Output += "\n";
-							}
-							test.IsPassing = CompareResults(test.Output, test.Expected);
-
-							if (inputFile.FileType == FileType.PossiblyXML)
-							{
-								inputFile.FileType = FileType.XML;
-							}
-						}
-						else
-						{
-							if (inputFile.FileType == FileType.PossiblyXML)
-							{
-								inputFile.FileType = FileType.Invalid;
-							}
-						}
-					}
-
-					section.UpdatePassingStatus();
-					section.UpdateValidityStatus();
-				}
-
-				inputFile.UpdatePassingStatus();
-				inputFile.UpdateValidityStatus();
-			}
-		}
-
+	public static class Together
+	{
 		public static bool CompareResults(string? generated, string? expected)
 		{
 			if (generated == null || expected == null)
@@ -112,22 +45,6 @@ namespace MarkXLibrary
 			return generated == testResult;
 		}
 
-		public static void AssignExpectedResult(List<SectionFile>? inputFiles, SectionFile? resultFile, bool preferOwnResult)
-		{
-			if (inputFiles == null || resultFile == null)
-			{
-				return;
-			}
-			var tests = inputFiles
-				.SelectMany(x => x.Sections)
-				.SelectMany(x => x.Tests);
-
-			foreach (var test in tests)
-			{
-				test.Expected = ChooseExpectedResult(test.Expected, resultFile.RawContent, preferOwnResult);
-			}
-		}
-
 		public static string? ChooseExpectedResult(string? own, string? provided, bool preferOwnResult)
 		{
 			if (own == null)
@@ -145,19 +62,44 @@ namespace MarkXLibrary
 			return provided;
 		}
 
-		public static List<Section> GroupSections(List<SectionFile>? inputFiles)
+		public static string? ParseXml(string xml)
 		{
-			var groupedSections = inputFiles?
-				.SelectMany(x => x.Sections)
-				.GroupBy(x => x.Name)
-				.Select(x => new Section()
-				{
-					Name = x.Key,
-					Tests = x.SelectMany(x => x.Tests).ToList()
-				})
-				.ToList();
+			string? result = null;
+			XElement? root;
+			try
+			{
+				root = XElement.Parse(xml, LoadOptions.PreserveWhitespace);
+			}
+			catch (Exception)
+			{
+				return result;
+			}
 
-			return groupedSections ?? new List<Section>();
+			if (root != null)
+			{
+				var parentInheritance = new InheritanceData()
+				{
+					IncludeText = false,
+					Separate = false,
+					Parenthesise = false,
+				};
+				var (lines, _) = XMLParser.Parse(root, parentInheritance);
+				if (lines != null)
+				{
+					result = string.Join("\n", lines);
+					result += "\n";
+				}
+			}
+			return result;
+		}
+
+		public static void DisableElement(string name)
+		{
+			var codeBlockElement = Mapping.DefaultMappingSpecification?.GetMappingDefinitionById(name);
+			if (codeBlockElement != null)
+			{
+				codeBlockElement.IsEnabled = false;
+			}
 		}
 	}
 }

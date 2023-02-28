@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace MarkXLibrary
 {
 	public class InheritanceInfo : ICloneable
