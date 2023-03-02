@@ -39,6 +39,8 @@ namespace MarkXConsoleUI
 				InfoWriter.PrintParsingResults(options, inputFiles);
 			}
 			ExportParsedTests(options, inputFiles);
+
+			// var transformed = Transform();
 		}
 
 		public static void RunChecking(CheckOptions options)

@@ -1,4 +1,6 @@
-﻿using System.Xml.Linq;
+﻿using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Xsl;
 
 namespace MarkXLibrary
 {
@@ -103,6 +105,47 @@ namespace MarkXLibrary
 			{
 				codeBlockElement.IsEnabled = false;
 			}
+		}
+
+		// EXP
+		public static string? TransformXml(string xml)
+        {
+			var path = @"C:\Users\andre\source\repos\MarkX\MarkXLibrary\mapping.xslt";
+
+			if (path == null || !File.Exists(path))
+			{
+				return null;
+			}
+
+			var xslt = "";
+			using (StreamReader sr = new StreamReader(path))
+			{
+				xslt = sr.ReadToEnd();
+			}
+			
+			Console.WriteLine(xslt);
+
+			var oldDocument = new XDocument(xml);
+			var newDocument = new XDocument();
+
+			using (var stringReader = new StringReader(xslt))
+			{
+				using (XmlReader xsltReader = XmlReader.Create(stringReader))
+				{
+					var transformer = new XslCompiledTransform();
+					transformer.Load(xsltReader);
+					using (XmlReader oldDocumentReader = oldDocument.CreateReader())
+					{
+						using (XmlWriter newDocumentWriter = newDocument.CreateWriter())
+						{
+							transformer.Transform(oldDocumentReader, newDocumentWriter);
+						}
+					}
+				}
+			}
+
+			string result = newDocument.ToString();
+			return result;
 		}
 	}
 }
