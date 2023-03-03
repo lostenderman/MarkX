@@ -6,8 +6,34 @@ namespace MarkXLibrary
 {
 	public static class Together
 	{
-		// TODO add configuration, code
+		private static string transformPath { get; } = @"C:\Users\andre\source\repos\MarkX\MarkXLibrary\mapping.xslt";
+		private static XslCompiledTransform xslt { get; } = new XslCompiledTransform();
 
+		static Together()
+        {
+			LoadTransformation();
+		}
+		public static void LoadTransformation()
+        {
+			if (transformPath == null || !File.Exists(transformPath))
+			{
+				return;
+			}
+
+			var xsltInput = "";
+			using (StreamReader sr = new StreamReader(transformPath))
+			{
+				xsltInput = sr.ReadToEnd();
+			}
+
+			using (var srt = new StringReader(xsltInput))
+			{
+				using (XmlReader xrt = XmlReader.Create(srt, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Parse }))
+				{
+					xslt.Load(xrt);
+				}
+			}
+		}
 		// TODO classes
 		public static bool CompareResults(string? generated, string? expected)
 		{
@@ -109,43 +135,26 @@ namespace MarkXLibrary
 
 		// EXP
 		public static string? TransformXml(string xml)
-        {
-			var path = @"C:\Users\andre\source\repos\MarkX\MarkXLibrary\mapping.xslt";
+		{
+			var output = "";
 
-			if (path == null || !File.Exists(path))
+			using (StringReader stringReader = new StringReader(xml))
 			{
-				return null;
-			}
-
-			var xslt = "";
-			using (StreamReader sr = new StreamReader(path))
-			{
-				xslt = sr.ReadToEnd();
-			}
-			
-			Console.WriteLine(xslt);
-
-			var oldDocument = new XDocument(xml);
-			var newDocument = new XDocument();
-
-			using (var stringReader = new StringReader(xslt))
-			{
-				using (XmlReader xsltReader = XmlReader.Create(stringReader))
+				using (XmlReader xmlReader = XmlReader.Create(stringReader))
 				{
-					var transformer = new XslCompiledTransform();
-					transformer.Load(xsltReader);
-					using (XmlReader oldDocumentReader = oldDocument.CreateReader())
+					using (StringWriter stringWriter = new StringWriter())
 					{
-						using (XmlWriter newDocumentWriter = newDocument.CreateWriter())
+						using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, xslt.OutputSettings))
 						{
-							transformer.Transform(oldDocumentReader, newDocumentWriter);
+							xslt.Transform(xmlReader, xmlWriter);
+							output = stringWriter.ToString();
 						}
 					}
 				}
 			}
 
-			string result = newDocument.ToString();
-			return result;
+			Console.WriteLine(output);
+			return output;
 		}
 	}
 }

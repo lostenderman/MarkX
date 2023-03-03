@@ -39,8 +39,6 @@ namespace MarkXConsoleUI
 				InfoWriter.PrintParsingResults(options, inputFiles);
 			}
 			ExportParsedTests(options, inputFiles);
-
-			// var transformed = Transform();
 		}
 
 		public static void RunChecking(CheckOptions options)
@@ -189,6 +187,9 @@ namespace MarkXConsoleUI
 						}
 
 						var parsed = Together.ParseXml(test.XML);
+						var parsed2 = Together.TransformXml(test.XML);
+
+						Console.WriteLine(parsed2);
 						if (parsed == null)
 						{
 							if (inputFile.FileType == FileType.PossiblyXML)
