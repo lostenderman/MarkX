@@ -1,9 +1,23 @@
-﻿using System.Xml;
+﻿using System.Security.Cryptography;
+using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
 
 namespace MarkXLibrary
 {
+	public class XsltExtension
+    {
+		public string Hash(string input)
+		{
+			using (MD5 md5 = MD5.Create())
+			{
+				byte[] inputBytes = System.Text.Encoding.UTF8.GetBytes(input);
+				byte[] hashBytes = md5.ComputeHash(inputBytes);
+				return Convert.ToHexString(hashBytes).ToLower();
+			}
+		}
+	}
+
 	public static class Together
 	{
 		private static string transformPath { get; } = @"C:\Users\andre\source\repos\MarkX\MarkXLibrary\mapping.xslt";
@@ -26,11 +40,14 @@ namespace MarkXLibrary
 				xsltInput = sr.ReadToEnd();
 			}
 
+			XsltSettings xsltSettings = new XsltSettings();
+			xsltSettings.EnableScript = true;
+
 			using (var srt = new StringReader(xsltInput))
 			{
-				using (XmlReader xrt = XmlReader.Create(srt, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Parse }))
+				using (XmlReader xrt = XmlReader.Create(srt, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Ignore }))
 				{
-					xslt.Load(xrt);
+					xslt.Load(xrt, xsltSettings, new XmlUrlResolver());
 				}
 			}
 		}
@@ -138,22 +155,26 @@ namespace MarkXLibrary
 		{
 			var output = "";
 
+			XsltExtension xsltExtension = new XsltExtension();
+			XsltArgumentList xsltArguments = new XsltArgumentList();
+			xsltArguments.AddExtensionObject("ext:hash", xsltExtension);
+
 			using (StringReader stringReader = new StringReader(xml))
 			{
-				using (XmlReader xmlReader = XmlReader.Create(stringReader))
+				using (XmlTextReader xmlReader = new XmlTextReader(stringReader))
 				{
+					xmlReader.XmlResolver = null;
 					using (StringWriter stringWriter = new StringWriter())
 					{
 						using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, xslt.OutputSettings))
 						{
-							xslt.Transform(xmlReader, xmlWriter);
+							xslt.Transform(xmlReader, xsltArguments, xmlWriter);
 							output = stringWriter.ToString();
 						}
 					}
 				}
 			}
 
-			Console.WriteLine(output);
 			return output;
 		}
 	}
