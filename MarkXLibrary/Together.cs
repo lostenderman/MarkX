@@ -157,7 +157,7 @@ namespace MarkXLibrary
 
 			XsltExtension xsltExtension = new XsltExtension();
 			XsltArgumentList xsltArguments = new XsltArgumentList();
-			xsltArguments.AddExtensionObject("ext:hash", xsltExtension);
+			xsltArguments.AddExtensionObject("mark:ext", xsltExtension);
 
 			using (StringReader stringReader = new StringReader(xml))
 			{
