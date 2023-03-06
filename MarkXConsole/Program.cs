@@ -32,7 +32,7 @@ namespace MarkXConsoleUI
 			{
 				Together.DisableElement("fenced_code_block");
 			}
-			TryParseTests(inputFiles);
+			TryParseTests(inputFiles, options);
 
 			if (!options.Quiet)
 			{
@@ -56,7 +56,7 @@ namespace MarkXConsoleUI
 			}
 			AssignExpectedResult(inputFiles, resultFile, options.OwnResult);
 
-			TryParseTests(inputFiles);
+			TryParseTests(inputFiles, options);
 			CheckTests(inputFiles);
 
 			if (!options.Quiet)
@@ -169,7 +169,7 @@ namespace MarkXConsoleUI
 			}
 		}
 
-		public static void TryParseTests(List<SectionFile>? inputFiles)
+		public static void TryParseTests(List<SectionFile>? inputFiles, Options options)
 		{
 			if (inputFiles == null)
 			{
@@ -187,7 +187,7 @@ namespace MarkXConsoleUI
 						}
 
 						var parsed = Together.ParseXml(test.XML);
-						var parsed2 = Together.TransformXml(test.XML);
+						var parsed2 = Together.TransformXml(test.XML, options.IndentCode, options.Extensions);
 
 						Console.WriteLine(parsed2);
 						if (parsed == null)

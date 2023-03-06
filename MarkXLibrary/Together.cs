@@ -7,14 +7,19 @@ namespace MarkXLibrary
 {
 	public class XsltExtension
     {
-		public string Hash(string input)
+		public string Hash(string text)
 		{
 			using (MD5 md5 = MD5.Create())
 			{
-				byte[] inputBytes = System.Text.Encoding.UTF8.GetBytes(input);
+				byte[] inputBytes = System.Text.Encoding.UTF8.GetBytes(text);
 				byte[] hashBytes = md5.ComputeHash(inputBytes);
 				return Convert.ToHexString(hashBytes).ToLower();
 			}
+		}
+
+		public string UnescapeUri(string text)
+		{
+			return Uri.UnescapeDataString(text);
 		}
 	}
 
@@ -151,13 +156,15 @@ namespace MarkXLibrary
 		}
 
 		// EXP
-		public static string? TransformXml(string xml)
+		public static string? TransformXml(string xml, bool indentCode, IEnumerable<string> extensionList)
 		{
 			var output = "";
 
 			XsltExtension xsltExtension = new XsltExtension();
 			XsltArgumentList xsltArguments = new XsltArgumentList();
 			xsltArguments.AddExtensionObject("mark:ext", xsltExtension);
+			xsltArguments.AddParam("indented-code", "", indentCode);
+			xsltArguments.AddParam("extensions", "", string.Join(" ", extensionList));
 
 			using (StringReader stringReader = new StringReader(xml))
 			{

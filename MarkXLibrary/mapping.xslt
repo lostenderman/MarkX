@@ -3,6 +3,9 @@
 xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     <xsl:output method="text" omit-xml-declaration="yes" encoding="UTF-8" indent="no"/>
 
+	<xsl:param name="indented-code"></xsl:param>
+	<xsl:param name="extensions"></xsl:param>
+
 	<xsl:variable name="block-separator" select="'interblockSeparator'"/>
 	<xsl:variable name="block-position-start" select="'Begin'"/>
 	<xsl:variable name="block-position-end" select="'End'"/>
@@ -26,6 +29,19 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:value-of select="$str" />
 			</xsl:otherwise>
 		</xsl:choose>
+	</xsl:template>
+
+	<xsl:template name="is-extension-enabled">
+		<xsl:param name="current-extensions"/>
+		<xsl:param name="extension-name"/>
+		
+		<!-- IN PROGRESS -->
+
+		<xsl:variable name="first-extension" select="substring-before(current-extensions, ' ')"/>
+
+		<xsl:if test="curre">
+			
+		</xsl:if>
 	</xsl:template>
 
 	<!-- ROOT -->
@@ -180,7 +196,12 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:copy-of select="$multiline-position-start"/><xsl:value-of select ="name(.)"/><xsl:text>&#10;</xsl:text>
 		<xsl:text>- label: </xsl:text><xsl:call-template name="inline"/>
 		<xsl:text>&#10;</xsl:text>
-		<xsl:text>- URI: </xsl:text><xsl:value-of select ="@destination"/>
+		<xsl:text>- URI: </xsl:text>
+		<xsl:call-template name="escape-text">
+			<xsl:with-param name="text">
+				<xsl:value-of select ="ext:UnescapeUri(@destination)"/>
+			</xsl:with-param>
+		</xsl:call-template>
 		<xsl:text>&#10;</xsl:text>
 		<xsl:text>- title: </xsl:text><xsl:value-of select ="@title"/>
 		<xsl:text>&#10;</xsl:text>
@@ -189,19 +210,32 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<xsl:template match="cm:code_block">
-		<xsl:copy-of select="$multiline-position-start"/><xsl:text>fencedCode</xsl:text>
-		<xsl:text>&#10;</xsl:text>
-		<xsl:text>- src: </xsl:text>
-		<xsl:variable name="content">
-			<xsl:call-template name="remove-last">
-				<xsl:with-param name="str" select="." />
-			</xsl:call-template>
-		</xsl:variable>
-		<xsl:text>./_markdown_test/</xsl:text><xsl:value-of select ="ext:Hash($content)"/><xsl:text>.verbatim</xsl:text>
-		<xsl:text>&#10;</xsl:text>
-		<xsl:text>- infostring: </xsl:text>
-		<xsl:text>&#10;</xsl:text>
-		<xsl:text>End </xsl:text><xsl:text>fencedCode</xsl:text>
+		<xsl:choose>
+			<xsl:when test="$indented-code">
+				<xsl:text>inputVerbatim: </xsl:text>
+				<xsl:variable name="content">
+					<xsl:call-template name="remove-last">
+						<xsl:with-param name="str" select="." />
+					</xsl:call-template>
+				</xsl:variable>
+				<xsl:text>./_markdown_test/</xsl:text><xsl:value-of select ="ext:Hash($content)"/><xsl:text>.verbatim</xsl:text>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:copy-of select="$multiline-position-start"/><xsl:text>fencedCode</xsl:text>
+				<xsl:text>&#10;</xsl:text>
+				<xsl:text>- src: </xsl:text>
+				<xsl:variable name="content">
+					<xsl:call-template name="remove-last">
+						<xsl:with-param name="str" select="." />
+					</xsl:call-template>
+				</xsl:variable>
+				<xsl:text>./_markdown_test/</xsl:text><xsl:value-of select ="ext:Hash($content)"/><xsl:text>.verbatim</xsl:text>
+				<xsl:text>&#10;</xsl:text>
+				<xsl:text>- infostring: </xsl:text>
+				<xsl:text>&#10;</xsl:text>
+				<xsl:text>End </xsl:text><xsl:text>fencedCode</xsl:text>
+			</xsl:otherwise>
+		</xsl:choose>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 	
@@ -222,7 +256,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
-	<!-- SPECIAL CHARACTERS / ESCAPING-->
+	<!-- SPECIAL CHARACTERS / ESCAPING -->
 
 	<xsl:template name="escape-text">
 		<xsl:param name="text"/>
@@ -251,6 +285,14 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:text>hash</xsl:text>
 				<xsl:text>&#10;</xsl:text>
 			</xsl:when>
+			<xsl:when test="$character = '%'">
+				<xsl:text>percentSign</xsl:text>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:when>
+			<xsl:when test="$character = '\'">
+				<xsl:text>backslash</xsl:text>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:when>
 			<xsl:otherwise>
 				<xsl:value-of select="$character"/>
 				<xsl:text>&#10;</xsl:text>
@@ -259,9 +301,30 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 	</xsl:template>
 
+	<!-- EXTENSIONS -->
+
+	<xsl:template match="cm:line_block">
+		<xsl:variable name="is-enabled">
+			<xsl:call-template name="is-extension-enabled">
+				<xsl:with-param name="extension-name" select="local-name()" />
+				<xsl:with-param name="current-extensions">
+					<xsl:copy-of select="$extensions" />
+				</xsl:with-param>
+			</xsl:call-template>
+		</xsl:variable>
+
+		<xsl:if test="$is-enabled">
+			<xsl:text>lineBlockBegin</xsl:text>
+			<xsl:text>&#10;</xsl:text>
+			<xsl:apply-templates select="cm:*" />
+			<xsl:text>lineBlockEnd</xsl:text>
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
+
 	<!-- TODO 
 	
-	Escaping
+	Escaping - in progress
 	Extensions
 	Configurations
 	BlockSeparator
