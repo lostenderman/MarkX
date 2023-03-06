@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0"
 xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     <xsl:output method="text" omit-xml-declaration="yes" encoding="UTF-8" indent="no"/>
 
@@ -28,7 +28,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		</xsl:choose>
 	</xsl:template>
 
-	
 	<!-- ROOT -->
 
 	<xsl:template match="/">
@@ -132,9 +131,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 						<xsl:apply-templates select="." />
 					</xsl:when>
 					<xsl:otherwise>
-						<xsl:text>(</xsl:text>
 						<xsl:apply-templates select="." />
-						<xsl:text>)</xsl:text>
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:for-each>
@@ -173,7 +170,9 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<xsl:template match="cm:text">
-		<xsl:value-of select="." />
+		<xsl:call-template name="escape-text">
+			<xsl:with-param name="text" select="."/>
+		</xsl:call-template>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
@@ -224,8 +223,41 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<!-- SPECIAL CHARACTERS / ESCAPING-->
-	
-	
+
+	<xsl:template name="escape-text">
+		<xsl:param name="text"/>
+
+		<xsl:call-template name="map-special">
+			<xsl:with-param name="character" select="substring($text, 1, 1)"/>
+		</xsl:call-template>
+
+		<xsl:if test="string-length($text) > 1">
+			<xsl:call-template name="escape-text">
+				<xsl:with-param name="text" select="substring($text, 2)"/>
+			</xsl:call-template>
+		</xsl:if>
+
+	</xsl:template>
+
+	<xsl:template name="map-special">
+		<xsl:param name="character"/>
+		
+		<xsl:choose>
+			<xsl:when test="$character = '$'">
+				<xsl:text>dollarSign</xsl:text>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:when>
+			<xsl:when test="$character = '#'">
+				<xsl:text>hash</xsl:text>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="$character"/>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:otherwise>
+		</xsl:choose>
+
+	</xsl:template>
 
 	<!-- TODO 
 	
