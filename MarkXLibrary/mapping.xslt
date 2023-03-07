@@ -63,6 +63,12 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		</xsl:if>
 	</xsl:template>
 
+	<xsl:template name="replace-newlines-with-spaces">
+		<xsl:param name="text"/>
+
+		<xsl:value-of select="translate($text, '&#10;', ' ')"/>
+	</xsl:template>
+
 	<!-- ROOT -->
 
 	<xsl:template match="/">
@@ -74,7 +80,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     <xsl:template match="cm:document">
         <xsl:text>documentBegin</xsl:text>
 		<xsl:text>&#10;</xsl:text>
-        <xsl:apply-templates select="cm:*" />
+        <xsl:apply-templates select="cm:*"/>
         <xsl:text>documentEnd</xsl:text>
 		<xsl:text>&#10;</xsl:text>
     </xsl:template>
@@ -84,17 +90,17 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     </xsl:template>
 
 	<xsl:template match="cm:softbreak">
-		<xsl:apply-templates select="ancestor::cm:*"/>
+		<xsl:text> </xsl:text>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
 	<xsl:template match="cm:linebreak">
-		<xsl:apply-templates select="ancestor::cm:*"/>
+		<xsl:text>lineBreak</xsl:text>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
 	<xsl:template match="cm:thematic_break">
-		<xsl:apply-templates select="ancestor::cm:*"/>
+		<xsl:text>thematicBreak</xsl:text>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
@@ -163,7 +169,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			<xsl:for-each select="cm:*">
 				<xsl:choose>
 					<xsl:when test="local-name() = 'text'">
-						<xsl:apply-templates select="." />
+						<xsl:apply-templates select="." mode="include-non-special"/>
 					</xsl:when>
 					<xsl:otherwise>
 						<xsl:apply-templates select="." />
@@ -172,7 +178,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			</xsl:for-each>
 		</xsl:variable>
 
-		<xsl:value-of select="translate($sub, '&#10;', '')"/>
+		<xsl:value-of select="$sub"/>
 	</xsl:template>
     
 	<xsl:template match="cm:heading">
@@ -205,9 +211,35 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<xsl:template match="cm:text">
+		<xsl:variable name="content" select="."/>
+
+		<xsl:variable name="content-with-replaced-newlines">
+			<xsl:call-template name="replace-newlines-with-spaces">
+				<xsl:with-param name="text" select="$content"/>
+			</xsl:call-template>
+		</xsl:variable>
+		
 		<xsl:call-template name="escape-text">
-			<xsl:with-param name="text" select="."/>
+			<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
 		</xsl:call-template>
+		
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
+
+	<xsl:template match="cm:text" mode="include-non-special">
+		<xsl:variable name="content" select="."/>
+
+		<xsl:variable name="content-with-replaced-newlines">
+			<xsl:call-template name="replace-newlines-with-spaces">
+				<xsl:with-param name="text" select="$content"/>
+			</xsl:call-template>
+		</xsl:variable>
+
+		<xsl:call-template name="escape-text">
+			<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
+			<xsl:with-param name="include-non-special" select="'true'"/>
+		</xsl:call-template>
+
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
@@ -264,6 +296,33 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<xsl:template match="cm:html_inline">
+		<!-- TODO comment-->
+		<xsl:variable name="content" select="."/>
+
+		<xsl:variable name="is-comment">
+			<xsl:if test="(starts-with($content, '&lt;!--')) and 
+					(substring($content, string-length($content) - string-length('--&gt;') + 1) = '--&gt;') and 
+					(string-length($content) &gt;= 7)">
+				
+				<xsl:variable name="comment-content" select="substring($content, 5, string-length($content) - 7)"/>
+
+				<xsl:if test="not(starts-with($comment-content, '&gt;')) and 
+						not(starts-with($comment-content, '-&gt;')) and 
+						not((substring($comment-content, string-length($comment-content) - string-length('-') + 1) = '-')) and 
+						not(contains($comment-content, '--'))">
+					<xsl:value-of select="'true'"/>
+				</xsl:if>
+			</xsl:if>
+		</xsl:variable>
+		
+		<xsl:choose>
+			<xsl:when test="$is-comment = 'true'">
+				<xsl:text>inlineHtmlComment</xsl:text>: <xsl:value-of select="."/> <!-- TODO remove comment markers from content-->
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:text>inlineHtmlTag</xsl:text>: <xsl:value-of select="."/>
+			</xsl:otherwise>
+		</xsl:choose>
 		
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
@@ -279,14 +338,17 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 	<xsl:template name="escape-text">
 		<xsl:param name="text"/>
+		<xsl:param name="include-non-special"/>
 
 		<xsl:call-template name="map-special">
 			<xsl:with-param name="character" select="substring($text, 1, 1)"/>
+			<xsl:with-param name="include-non-special" select="$include-non-special"/>
 		</xsl:call-template>
 
 		<xsl:if test="string-length($text) > 1">
 			<xsl:call-template name="escape-text">
 				<xsl:with-param name="text" select="substring($text, 2)"/>
+				<xsl:with-param name="include-non-special" select="$include-non-special"/>
 			</xsl:call-template>
 		</xsl:if>
 
@@ -294,30 +356,29 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 	<xsl:template name="map-special">
 		<xsl:param name="character"/>
+		<xsl:param name="include-non-special"/>
+		<xsl:param name="only-minimal"/> <!-- TODO -->
 		
 		<xsl:choose>
 			<xsl:when test="$character = '$'">
 				<xsl:text>dollarSign</xsl:text>
-				<xsl:text>&#10;</xsl:text>
 			</xsl:when>
 			<xsl:when test="$character = '#'">
 				<xsl:text>hash</xsl:text>
-				<xsl:text>&#10;</xsl:text>
 			</xsl:when>
 			<xsl:when test="$character = '%'">
 				<xsl:text>percentSign</xsl:text>
-				<xsl:text>&#10;</xsl:text>
 			</xsl:when>
 			<xsl:when test="$character = '\'">
 				<xsl:text>backslash</xsl:text>
-				<xsl:text>&#10;</xsl:text>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:value-of select="$character"/>
-				<xsl:text>&#10;</xsl:text>
+				<xsl:if test="$include-non-special = 'true'">
+					<xsl:value-of select="$character"/>
+				</xsl:if>
 			</xsl:otherwise>
 		</xsl:choose>
-
+		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
 	<!-- EXTENSIONS -->
@@ -346,10 +407,29 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	Escaping - in progress
 	BlockSeparator
 	Do not render text in blocks
+	InlineHtmlComment
 	
 	Formatting
 	
 	-->
 
+	<!-- TODO CHANGES SINCE MARKX 1.0 -->
+
+	<xsl:template match="cm:heading_with_sections">
+		<xsl:text>sectionBegin</xsl:text>
+		<xsl:text>&#10;</xsl:text>
+		<xsl:text>heading</xsl:text>
+		<xsl:choose>
+			<xsl:when test="@level = 1">One</xsl:when>
+			<xsl:when test="@level = 2">Two</xsl:when>
+			<xsl:when test="@level = 3">Three</xsl:when>
+			<xsl:when test="@level = 4">Four</xsl:when>
+			<xsl:when test="@level = 5">Five</xsl:when>
+			<xsl:when test="@level = 6">Six</xsl:when>
+		</xsl:choose>
+		<xsl:copy-of select="$inline-start"/>
+		<xsl:call-template name="inline"/>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
 
 </xsl:stylesheet>
