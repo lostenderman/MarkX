@@ -5,7 +5,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 	<xsl:param name="indented-code"></xsl:param>
 	<xsl:param name="extensions"></xsl:param>
-
+	
 	<xsl:variable name="block-separator" select="'interblockSeparator'"/>
 	<xsl:variable name="block-position-start" select="'Begin'"/>
 	<xsl:variable name="block-position-end" select="'End'"/>
@@ -34,13 +34,32 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<xsl:template name="is-extension-enabled">
 		<xsl:param name="current-extensions"/>
 		<xsl:param name="extension-name"/>
-		
-		<!-- IN PROGRESS -->
-
-		<xsl:variable name="first-extension" select="substring-before(current-extensions, ' ')"/>
-
-		<xsl:if test="curre">
+				
+		<xsl:if test="$current-extensions != ''">
 			
+			<xsl:variable name="first-extension" select="substring-before($current-extensions, ' ')"/>
+			<xsl:variable name="remaining-extensions" select="substring-after($current-extensions, ' ')"/>
+			
+			<xsl:choose>
+				<xsl:when test="$first-extension = ''">
+					<xsl:if test="$current-extensions = $extension-name">
+						<xsl:value-of select="'true()'" />
+					</xsl:if>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:choose>
+						<xsl:when test="$first-extension = $extension-name">
+							<xsl:value-of select="'true()'" />
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:call-template name="is-extension-enabled">
+								<xsl:with-param name="extension-name" select="$extension-name" />
+								<xsl:with-param name="current-extensions" select="$remaining-extensions"/>
+							</xsl:call-template>
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:otherwise>
+			</xsl:choose>
 		</xsl:if>
 	</xsl:template>
 
@@ -306,14 +325,14 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<xsl:template match="cm:line_block">
 		<xsl:variable name="is-enabled">
 			<xsl:call-template name="is-extension-enabled">
-				<xsl:with-param name="extension-name" select="local-name()" />
+				<xsl:with-param name="extension-name" select="'line_blocks'" />
 				<xsl:with-param name="current-extensions">
 					<xsl:copy-of select="$extensions" />
 				</xsl:with-param>
 			</xsl:call-template>
 		</xsl:variable>
-
-		<xsl:if test="$is-enabled">
+		
+		<xsl:if test="$is-enabled = 'true()'">
 			<xsl:text>lineBlockBegin</xsl:text>
 			<xsl:text>&#10;</xsl:text>
 			<xsl:apply-templates select="cm:*" />
@@ -325,8 +344,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<!-- TODO 
 	
 	Escaping - in progress
-	Extensions
-	Configurations
 	BlockSeparator
 	Do not render text in blocks
 	

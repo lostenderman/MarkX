@@ -7,7 +7,7 @@ namespace MarkXLibrary
 {
 	public class XsltExtension
     {
-		public string Hash(string text)
+		public static string Hash(string text)
 		{
 			using (MD5 md5 = MD5.Create())
 			{
@@ -17,7 +17,7 @@ namespace MarkXLibrary
 			}
 		}
 
-		public string UnescapeUri(string text)
+		public static string UnescapeUri(string text)
 		{
 			return Uri.UnescapeDataString(text);
 		}
