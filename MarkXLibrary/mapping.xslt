@@ -76,6 +76,14 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     </xsl:template>
 
 	<!-- BLOCKS -->
+	
+	<!-- TODO -->
+	<xsl:template name="blocks">
+		<xsl:apply-templates select="cm:*"/>
+		
+		<xsl:copy-of select="$block-separator"/>
+		<xsl:apply-templates select="cm:*"/>
+	</xsl:template>
 
     <xsl:template match="cm:document">
         <xsl:text>documentBegin</xsl:text>
@@ -172,7 +180,13 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 						<xsl:apply-templates select="." mode="inline"/>
 					</xsl:when>
 					<xsl:otherwise>
-						<xsl:apply-templates select="." />
+						<xsl:variable name="els">
+							<xsl:apply-templates select="." />
+						</xsl:variable>
+					
+						<xsl:call-template name="parenthesise-group">
+							<xsl:with-param name="str" select="$els"/>
+						</xsl:call-template>
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:for-each>
@@ -246,7 +260,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
 		</xsl:call-template>
 		
-		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
 	<xsl:template match="cm:text" mode="inline">
@@ -262,8 +275,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
 			<xsl:with-param name="inline" select="'true'"/>
 		</xsl:call-template>
-
-		<xsl:text>&#10;</xsl:text>
+	
 	</xsl:template>
 
 	<xsl:template match="cm:link | cm:image">
@@ -286,13 +298,18 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<xsl:template match="cm:code_block">
 		<xsl:choose>
 			<xsl:when test="$indented-code">
-				<xsl:text>inputVerbatim: </xsl:text>
 				<xsl:variable name="content">
 					<xsl:call-template name="remove-last">
 						<xsl:with-param name="str" select="." />
 					</xsl:call-template>
 				</xsl:variable>
-				<xsl:text>./_markdown_test/</xsl:text><xsl:value-of select ="ext:Hash($content)"/><xsl:text>.verbatim</xsl:text>
+			
+				<xsl:call-template name="general-inline">
+					<xsl:with-param name="inline-name" select="'inputVerbatim'"/>
+					<xsl:with-param name="inline-content">
+						<xsl:text>./_markdown_test/</xsl:text><xsl:value-of select ="ext:Hash($content)"/><xsl:text>.verbatim</xsl:text>
+					</xsl:with-param>
+				</xsl:call-template>
 			</xsl:when>
 			<xsl:otherwise>
 				<xsl:copy-of select="$multiline-position-start"/><xsl:text>fencedCode</xsl:text>
@@ -319,7 +336,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<xsl:template match="cm:html_inline">
-		<!-- TODO comment-->
 		<xsl:variable name="content" select="."/>
 
 		<xsl:variable name="is-comment">
@@ -399,11 +415,11 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 			<xsl:choose>
 				<xsl:when test="$first = ''">
-					
+					<xsl:value-of select="$str"/>
 				</xsl:when>
 				<xsl:otherwise>
 					<xsl:call-template name="parenthesise-text">
-						<xsl:with-param name="str" select="first" />
+						<xsl:with-param name="str" select="$first" />
 						<xsl:with-param name="inline" select="'true'"/>
 					</xsl:call-template>
 					<xsl:call-template name="parenthesise-group">

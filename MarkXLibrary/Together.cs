@@ -6,7 +6,7 @@ using System.Xml.Xsl;
 namespace MarkXLibrary
 {
 	public class XsltExtension
-    {
+	{
 		public static string Hash(string text)
 		{
 			using (MD5 md5 = MD5.Create())
@@ -29,11 +29,11 @@ namespace MarkXLibrary
 		private static XslCompiledTransform xslt { get; } = new XslCompiledTransform();
 
 		static Together()
-        {
+		{
 			LoadTransformation();
 		}
 		public static void LoadTransformation()
-        {
+		{
 			if (transformPath == null || !File.Exists(transformPath))
 			{
 				return;
@@ -100,19 +100,8 @@ namespace MarkXLibrary
 
 		public static string? ChooseExpectedResult(string? own, string? provided, bool preferOwnResult)
 		{
-			if (own == null)
-			{
-				return provided;
-			}
-			if (provided == null)
-			{
-				return own;
-			}
-			if (preferOwnResult)
-			{
-				return own;
-			}
-			return provided;
+			return (own != null && provided != null) ? 
+				(preferOwnResult ? own : provided) : (own ?? provided);
 		}
 
 		public static string? ParseXml(string xml)
