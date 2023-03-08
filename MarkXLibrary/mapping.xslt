@@ -169,7 +169,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			<xsl:for-each select="cm:*">
 				<xsl:choose>
 					<xsl:when test="local-name() = 'text'">
-						<xsl:apply-templates select="." mode="include-non-special"/>
+						<xsl:apply-templates select="." mode="inline"/>
 					</xsl:when>
 					<xsl:otherwise>
 						<xsl:apply-templates select="." />
@@ -179,6 +179,16 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		</xsl:variable>
 
 		<xsl:value-of select="$sub"/>
+	</xsl:template>
+
+	<xsl:template name="general-inline">
+		<xsl:param name="inline-name"/>
+		<xsl:param name="inline-content"/>
+
+		<xsl:value-of select="$inline-name"/>
+		<xsl:copy-of select="$inline-start"/>
+		<xsl:value-of select="$inline-content"/>
+		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
     
 	<xsl:template match="cm:heading">
@@ -197,19 +207,32 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     </xsl:template>
 
 	<xsl:template match="cm:emph">
-		<xsl:text>emphasis</xsl:text>
-		<xsl:copy-of select="$inline-start"/>
-		<xsl:call-template name="inline"/>
-		<xsl:text>&#10;</xsl:text>
+		<xsl:call-template name="general-inline">
+			<xsl:with-param name="inline-name" select="'emphasis'"/>
+			<xsl:with-param name="inline-content">
+				<xsl:call-template name="inline"/>
+			</xsl:with-param>
+		</xsl:call-template>
     </xsl:template>
 
 	<xsl:template match="cm:strong">
-		<xsl:text>strongEmphasis</xsl:text>
-		<xsl:copy-of select="$inline-start"/>
-		<xsl:call-template name="inline"/>
-		<xsl:text>&#10;</xsl:text>
+		<xsl:call-template name="general-inline">
+			<xsl:with-param name="inline-name" select="'strongEmphasis'"/>
+			<xsl:with-param name="inline-content">
+				<xsl:call-template name="inline"/>
+			</xsl:with-param>
+		</xsl:call-template>
 	</xsl:template>
-
+	
+	<xsl:template match="cm:code">
+		<xsl:call-template name="general-inline">
+			<xsl:with-param name="inline-name" select="'codeSpan'"/>
+			<xsl:with-param name="inline-content">
+				<xsl:call-template name="inline"/>
+			</xsl:with-param>
+		</xsl:call-template>
+	</xsl:template>
+	
 	<xsl:template match="cm:text">
 		<xsl:variable name="content" select="."/>
 
@@ -226,7 +249,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
-	<xsl:template match="cm:text" mode="include-non-special">
+	<xsl:template match="cm:text" mode="inline">
 		<xsl:variable name="content" select="."/>
 
 		<xsl:variable name="content-with-replaced-newlines">
@@ -237,7 +260,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 		<xsl:call-template name="escape-text">
 			<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
-			<xsl:with-param name="include-non-special" select="'true'"/>
+			<xsl:with-param name="inline" select="'true'"/>
 		</xsl:call-template>
 
 		<xsl:text>&#10;</xsl:text>
@@ -327,41 +350,81 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
-	<xsl:template match="cm:code">
-		<xsl:text>codeSpan</xsl:text>
-		<xsl:copy-of select="$inline-start"/>
-		<xsl:call-template name="inline"/>
-		<xsl:text>&#10;</xsl:text>
-	</xsl:template>
+
 
 	<!-- SPECIAL CHARACTERS / ESCAPING -->
 
 	<xsl:template name="escape-text">
 		<xsl:param name="text"/>
-		<xsl:param name="include-non-special"/>
+		<xsl:param name="inline"/>
 
 		<xsl:call-template name="map-special">
 			<xsl:with-param name="character" select="substring($text, 1, 1)"/>
-			<xsl:with-param name="include-non-special" select="$include-non-special"/>
+			<xsl:with-param name="inline" select="$inline"/>
 		</xsl:call-template>
 
 		<xsl:if test="string-length($text) > 1">
 			<xsl:call-template name="escape-text">
 				<xsl:with-param name="text" select="substring($text, 2)"/>
-				<xsl:with-param name="include-non-special" select="$include-non-special"/>
+				<xsl:with-param name="inline" select="$inline"/>
 			</xsl:call-template>
 		</xsl:if>
 
 	</xsl:template>
 
+	<xsl:template name="parenthesise-text">
+		<xsl:param name="str" />
+		<xsl:param name="inline" />
+
+		<xsl:choose>
+			<xsl:when test="$inline = 'true'">
+				<xsl:text>(</xsl:text>
+				<xsl:value-of select="$str"/>
+				<xsl:text>)</xsl:text>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="$str"/>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+
+	<xsl:template name="parenthesise-group">
+		<xsl:param name="str" />
+
+		<xsl:if test="$str != ''">
+
+			<xsl:variable name="first" select="substring-before($str, '&#10;')"/>
+			<xsl:variable name="other" select="substring-after($str, '&#10;')"/>
+
+			<xsl:choose>
+				<xsl:when test="$first = ''">
+					
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:call-template name="parenthesise-text">
+						<xsl:with-param name="str" select="first" />
+						<xsl:with-param name="inline" select="'true'"/>
+					</xsl:call-template>
+					<xsl:call-template name="parenthesise-group">
+						<xsl:with-param name="str" select="$other" />
+					</xsl:call-template>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:if>
+	</xsl:template>
+
 	<xsl:template name="map-special">
 		<xsl:param name="character"/>
-		<xsl:param name="include-non-special"/>
+		<xsl:param name="inline"/>
 		<xsl:param name="only-minimal"/> <!-- TODO -->
 		
 		<xsl:choose>
 			<xsl:when test="$character = '$'">
-				<xsl:text>dollarSign</xsl:text>
+				<xsl:call-template name="parenthesise-text">
+					<xsl:with-param name="str" select="'dollarSign'"/>
+					<xsl:with-param name="inline" select="$inline"/>
+				</xsl:call-template>
 			</xsl:when>
 			<xsl:when test="$character = '#'">
 				<xsl:text>hash</xsl:text>
@@ -373,12 +436,11 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:text>backslash</xsl:text>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:if test="$include-non-special = 'true'">
+				<xsl:if test="$inline = 'true'">
 					<xsl:value-of select="$character"/>
 				</xsl:if>
 			</xsl:otherwise>
 		</xsl:choose>
-		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
 	<!-- EXTENSIONS -->
