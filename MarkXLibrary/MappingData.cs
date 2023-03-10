@@ -107,12 +107,15 @@ namespace MarkXLibrary
 				{
 					Id = "linebreak",
 					MarkupName = "linebreak",
+					ParenthesisesContent = false,
+					IncludeInBlocks = false,
+					Separate = false,
 					NameParts = new List<NamePart>()
 					{
 						new NamePart()
 						{
 							Type = NamePartType.Text,
-							Value = "lineBreak"
+							Value = " "
 						},
 					},
 				},
@@ -298,7 +301,8 @@ namespace MarkXLibrary
 						{
 							MarkdownName = "URI",
 							MarkupName = "destination",
-							SpecialCharacterMapping = SpecialCharacterType.Uri
+							SpecialCharacterMapping = SpecialCharacterType.Uri,
+							IsInputPercentEncoded = true
 						},
 						new Attr()
 						{

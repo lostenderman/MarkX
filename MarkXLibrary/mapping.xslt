@@ -132,6 +132,14 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			<xsl:copy-of select="$tight"/>
 		</xsl:if>
 	</xsl:template>
+	
+	<xsl:template match="cm:block_quote">
+        <xsl:text>blockquoteBegin</xsl:text>
+		<xsl:text>&#10;</xsl:text>
+        <xsl:apply-templates select="cm:*"/>
+        <xsl:text>blockquoteEnd</xsl:text>
+		<xsl:text>&#10;</xsl:text>
+    </xsl:template>
 
 	<xsl:template match="cm:list">	
 		<xsl:choose>

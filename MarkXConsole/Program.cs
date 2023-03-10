@@ -189,6 +189,11 @@ namespace MarkXConsoleUI
 						var parsed = Together.ParseXml(test.XML);
 						var parsed2 = Together.TransformXml(test.XML, options.IndentCode, options.Extensions);
 
+						if (parsed == parsed2)
+                        {
+							Console.WriteLine("EQUAL");
+                        }
+
 						Console.WriteLine(parsed2);
 						if (parsed == null)
 						{
