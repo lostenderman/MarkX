@@ -68,6 +68,25 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 		<xsl:value-of select="translate($text, '&#10;', ' ')"/>
 	</xsl:template>
+	
+	<xsl:template name="enclose-hash">
+		<xsl:param name="hashed-content"/>
+		
+		<xsl:value-of select="$verbatim-directory"/>
+		<xsl:value-of select="$hashed-content"/>
+		<xsl:value-of select="$verbatim"/>
+	</xsl:template>
+	
+	<xsl:template name="multiline-attribute">
+		<xsl:param name="name"/>
+		<xsl:param name="value"/>
+		
+		<xsl:value-of select="$multiline-attribute-start"/>
+		<xsl:value-of select="$name"/>
+		<xsl:value-of select="$inline-start"/>
+		<xsl:value-of select="$value"/>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
 
 	<!-- ROOT -->
 
@@ -77,18 +96,25 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 	<!-- BLOCKS -->
 	
-	<!-- TODO -->
+	<!-- 2.0 has <xsl:value-of select="." separator=", " /> -->
+	
 	<xsl:template name="blocks">
-		<xsl:apply-templates select="cm:*"/>
-		
-		<xsl:copy-of select="$block-separator"/>
-		<xsl:apply-templates select="cm:*"/>
+		<xsl:for-each select="cm:paragraph|cm:list|cm:html_block|cm:block_quote|cm:thematic_break|cm:code_block">
+			<xsl:apply-templates select="."></xsl:apply-templates>
+			<xsl:if test="position() != last()">
+				<xsl:copy-of select="$block-separator"/>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:if>
+		</xsl:for-each>
+		<xsl:for-each select="cm:softbreak|cm:linebreak|cm:item">
+			<xsl:apply-templates select="."></xsl:apply-templates>
+		</xsl:for-each>
 	</xsl:template>
 
     <xsl:template match="cm:document">
         <xsl:text>documentBegin</xsl:text>
 		<xsl:text>&#10;</xsl:text>
-        <xsl:apply-templates select="cm:*"/>
+		<xsl:call-template name="blocks"/>
         <xsl:text>documentEnd</xsl:text>
 		<xsl:text>&#10;</xsl:text>
     </xsl:template>
@@ -122,9 +148,10 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:if test="@tight">
 			<xsl:copy-of select="$tight"/>
 		</xsl:if>
-
-		<xsl:apply-templates select="cm:*" />
 		<xsl:text>&#10;</xsl:text>
+		
+		<!-- ONLY ITEMS CAN BE HERE (ONE TYPE) -->
+		<xsl:call-template name="blocks"/>
 
 		<xsl:copy-of select="$list-type"/>
 		<xsl:copy-of select="$block-position-end"/>
@@ -136,7 +163,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<xsl:template match="cm:block_quote">
         <xsl:text>blockquoteBegin</xsl:text>
 		<xsl:text>&#10;</xsl:text>
-        <xsl:apply-templates select="cm:*"/>
+        <xsl:call-template name="blocks"/>
         <xsl:text>blockquoteEnd</xsl:text>
 		<xsl:text>&#10;</xsl:text>
     </xsl:template>
@@ -156,22 +183,23 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		</xsl:choose>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
-
+	
+	<!-- TODO SIMPLIFY -->
 	<xsl:template match="cm:item">
 		<xsl:choose>
 			<xsl:when test="../@type = 'bullet'">
 				<xsl:text>ul</xsl:text>
 				<xsl:text>Item</xsl:text>
-				<xsl:apply-templates select="cm:*" />
 				<xsl:text>&#10;</xsl:text>
+				<xsl:call-template name="blocks"/>
 				<xsl:text>ul</xsl:text>
 				<xsl:text>Item</xsl:text>
 				<xsl:text>End</xsl:text>
 			</xsl:when>
 			<xsl:when test="../@type = 'ordered'">
 				<xsl:text>ol</xsl:text><xsl:text>Item</xsl:text><xsl:text>WithNumber</xsl:text>: <xsl:value-of select="../@start + position() - 1"/>
-				<xsl:apply-templates select="cm:*" />
 				<xsl:text>&#10;</xsl:text>
+				<xsl:call-template name="blocks"/>
 				<xsl:text>ol</xsl:text><xsl:text>Item</xsl:text><xsl:text>End</xsl:text>
 			</xsl:when>
 		</xsl:choose>
@@ -250,7 +278,10 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:call-template name="general-inline">
 			<xsl:with-param name="inline-name" select="'codeSpan'"/>
 			<xsl:with-param name="inline-content">
-				<xsl:call-template name="inline"/>
+				<xsl:call-template name="escape-text">
+					<xsl:with-param name="text" select="."/>
+					<xsl:with-param name="inline" select="'true'"/>
+				</xsl:call-template>
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
@@ -287,19 +318,36 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<xsl:template match="cm:link | cm:image">
-		<xsl:copy-of select="$multiline-position-start"/><xsl:value-of select ="name(.)"/><xsl:text>&#10;</xsl:text>
-		<xsl:text>- label: </xsl:text><xsl:call-template name="inline"/>
+		<xsl:copy-of select="$multiline-position-start"/>
+		<xsl:value-of select ="name(.)"/>
 		<xsl:text>&#10;</xsl:text>
-		<xsl:text>- URI: </xsl:text>
-		<xsl:call-template name="escape-text">
-			<xsl:with-param name="text">
+		
+		<xsl:call-template name="multiline-attribute">
+			<xsl:with-param name="name" select="'label'"/>
+			<xsl:with-param name="value">
+				<xsl:call-template name="inline"/>
+			</xsl:with-param>
+		</xsl:call-template>
+		
+		<xsl:call-template name="multiline-attribute">
+			<xsl:with-param name="name" select="'URI'"/>
+			<xsl:with-param name="value">
 				<xsl:value-of select ="ext:UnescapeUri(@destination)"/>
 			</xsl:with-param>
 		</xsl:call-template>
-		<xsl:text>&#10;</xsl:text>
-		<xsl:text>- title: </xsl:text><xsl:value-of select ="@title"/>
-		<xsl:text>&#10;</xsl:text>
-		<xsl:copy-of select="$multiline-position-end"/><xsl:value-of select ="name(.)"/>
+		
+		<xsl:call-template name="multiline-attribute">
+			<xsl:with-param name="name" select="'title'"/>
+			<xsl:with-param name="value">
+				<xsl:call-template name="escape-text">
+					<xsl:with-param name="text" select="@title"/>
+					<xsl:with-param name="inline" select="'true'"/>
+				</xsl:call-template>
+			</xsl:with-param>
+		</xsl:call-template>
+	
+		<xsl:copy-of select="$multiline-position-end"/>
+		<xsl:value-of select ="name(.)"/>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
@@ -315,32 +363,55 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:call-template name="general-inline">
 					<xsl:with-param name="inline-name" select="'inputVerbatim'"/>
 					<xsl:with-param name="inline-content">
-						<xsl:text>./_markdown_test/</xsl:text><xsl:value-of select ="ext:Hash($content)"/><xsl:text>.verbatim</xsl:text>
+						<xsl:call-template name="enclose-hash">
+							<xsl:with-param name="hashed-content" select="ext:Hash($content)"/>
+						</xsl:call-template>
 					</xsl:with-param>
 				</xsl:call-template>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:copy-of select="$multiline-position-start"/><xsl:text>fencedCode</xsl:text>
+				<xsl:copy-of select="$multiline-position-start"/>
+				<xsl:text>fencedCode</xsl:text>
 				<xsl:text>&#10;</xsl:text>
-				<xsl:text>- src: </xsl:text>
+				
 				<xsl:variable name="content">
 					<xsl:call-template name="remove-last">
 						<xsl:with-param name="str" select="." />
 					</xsl:call-template>
 				</xsl:variable>
-				<xsl:text>./_markdown_test/</xsl:text><xsl:value-of select ="ext:Hash($content)"/><xsl:text>.verbatim</xsl:text>
-				<xsl:text>&#10;</xsl:text>
-				<xsl:text>- infostring: </xsl:text>
-				<xsl:text>&#10;</xsl:text>
-				<xsl:text>End </xsl:text><xsl:text>fencedCode</xsl:text>
+				
+				<xsl:call-template name="multiline-attribute">
+					<xsl:with-param name="name" select="'src'"/>
+					<xsl:with-param name="value">
+						<xsl:call-template name="enclose-hash">
+							<xsl:with-param name="hashed-content" select="ext:Hash($content)"/>
+						</xsl:call-template>
+					</xsl:with-param>
+				</xsl:call-template>
+				
+				<xsl:call-template name="multiline-attribute">
+					<xsl:with-param name="name" select="'infostring'"/>
+					<xsl:with-param name="value">
+						<xsl:value-of select ="."/>
+					</xsl:with-param>
+				</xsl:call-template>
+				
+				<xsl:copy-of select="$multiline-position-end"/>
+				<xsl:text>fencedCode</xsl:text>
 			</xsl:otherwise>
 		</xsl:choose>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 	
 	<xsl:template match="cm:html_block">
-		<xsl:text>inputBlockHtmlElement</xsl:text>: <xsl:text>./_markdown_test/</xsl:text><xsl:value-of select ="ext:Hash(.)"/><xsl:text>.verbatim</xsl:text>
-		<xsl:text>&#10;</xsl:text>
+		<xsl:call-template name="general-inline">
+			<xsl:with-param name="inline-name" select="'inputBlockHtmlElement'"/>
+			<xsl:with-param name="inline-content">
+				<xsl:call-template name="enclose-hash">
+					<xsl:with-param name="hashed-content" select="ext:Hash(.)"/>
+				</xsl:call-template>
+			</xsl:with-param>
+		</xsl:call-template>
 	</xsl:template>
 
 	<xsl:template match="cm:html_inline">
@@ -468,7 +539,8 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<!-- EXTENSIONS -->
-
+	
+	<!-- TODO SPECIFY AS BLOCK, ADD TO BLOCKS -->
 	<xsl:template match="cm:line_block">
 		<xsl:variable name="is-enabled">
 			<xsl:call-template name="is-extension-enabled">
@@ -491,15 +563,12 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<!-- TODO 
 	
 	Escaping - in progress
-	BlockSeparator
-	Do not render text in blocks
-	InlineHtmlComment
-	
-	Formatting
+	InlineHtmlComment - in progress
+	Formatting - in progress
 	
 	-->
 
-	<!-- TODO CHANGES SINCE MARKX 1.0 -->
+	<!-- TODO CHANGES SINCE MARKX 1.0 - SECTIONS -->
 
 	<xsl:template match="cm:heading_with_sections">
 		<xsl:text>sectionBegin</xsl:text>

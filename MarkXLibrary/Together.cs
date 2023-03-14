@@ -25,8 +25,8 @@ namespace MarkXLibrary
 
 	public static class Together
 	{
-		private static string transformPath { get; } = @"C:\Users\andre\source\repos\MarkX\MarkXLibrary\mapping.xslt";
-		private static XslCompiledTransform xslt { get; } = new XslCompiledTransform();
+		private static string TransformPath { get; } = @"C:\Users\andre\source\repos\MarkX\MarkXLibrary\mapping.xslt";
+		private static XslCompiledTransform Xslt { get; } = new XslCompiledTransform();
 
 		static Together()
 		{
@@ -34,25 +34,27 @@ namespace MarkXLibrary
 		}
 		public static void LoadTransformation()
 		{
-			if (transformPath == null || !File.Exists(transformPath))
+			if (TransformPath == null || !File.Exists(TransformPath))
 			{
 				return;
 			}
 
 			var xsltInput = "";
-			using (StreamReader sr = new StreamReader(transformPath))
+			using (StreamReader sr = new(TransformPath))
 			{
 				xsltInput = sr.ReadToEnd();
 			}
 
-			XsltSettings xsltSettings = new XsltSettings();
-			xsltSettings.EnableScript = true;
+            XsltSettings xsltSettings = new()
+            {
+                EnableScript = true
+            };
 
-			using (var srt = new StringReader(xsltInput))
+            using (var srt = new StringReader(xsltInput))
 			{
 				using (XmlReader xrt = XmlReader.Create(srt, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Ignore }))
 				{
-					xslt.Load(xrt, xsltSettings, new XmlUrlResolver());
+					Xslt.Load(xrt, xsltSettings, new XmlUrlResolver());
 				}
 			}
 		}
@@ -162,9 +164,9 @@ namespace MarkXLibrary
 					xmlReader.XmlResolver = null;
 					using (StringWriter stringWriter = new StringWriter())
 					{
-						using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, xslt.OutputSettings))
+						using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, Xslt.OutputSettings))
 						{
-							xslt.Transform(xmlReader, xsltArguments, xmlWriter);
+							Xslt.Transform(xmlReader, xsltArguments, xmlWriter);
 							output = stringWriter.ToString();
 						}
 					}
