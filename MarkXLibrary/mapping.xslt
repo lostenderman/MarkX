@@ -281,6 +281,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:call-template name="escape-text">
 					<xsl:with-param name="text" select="."/>
 					<xsl:with-param name="inline" select="'true'"/>
+					<xsl:with-param name="map-type" select="'typographic'"/>
 				</xsl:call-template>
 			</xsl:with-param>
 		</xsl:call-template>
@@ -297,6 +298,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		
 		<xsl:call-template name="escape-text">
 			<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
+			<xsl:with-param name="map-type" select="'typographic'"/>
 		</xsl:call-template>
 		
 	</xsl:template>
@@ -313,6 +315,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:call-template name="escape-text">
 			<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
 			<xsl:with-param name="inline" select="'true'"/>
+			<xsl:with-param name="map-type" select="'typographic'"/>
 		</xsl:call-template>
 	
 	</xsl:template>
@@ -332,7 +335,11 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:call-template name="multiline-attribute">
 			<xsl:with-param name="name" select="'URI'"/>
 			<xsl:with-param name="value">
-				<xsl:value-of select ="ext:UnescapeUri(@destination)"/>
+				<xsl:call-template name="escape-text">
+					<xsl:with-param name="text" select="ext:UnescapeUri(@destination)"/>
+					<xsl:with-param name="inline" select="'true'"/>
+					<xsl:with-param name="map-type" select="'programmatic'"/>
+				</xsl:call-template>
 			</xsl:with-param>
 		</xsl:call-template>
 		
@@ -342,6 +349,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:call-template name="escape-text">
 					<xsl:with-param name="text" select="@title"/>
 					<xsl:with-param name="inline" select="'true'"/>
+					<xsl:with-param name="map-type" select="'typographic'"/>
 				</xsl:call-template>
 			</xsl:with-param>
 		</xsl:call-template>
@@ -446,22 +454,24 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 
-
 	<!-- SPECIAL CHARACTERS / ESCAPING -->
 
 	<xsl:template name="escape-text">
 		<xsl:param name="text"/>
 		<xsl:param name="inline"/>
+		<xsl:param name="map-type"/>
 
 		<xsl:call-template name="map-special">
 			<xsl:with-param name="character" select="substring($text, 1, 1)"/>
 			<xsl:with-param name="inline" select="$inline"/>
+			<xsl:with-param name="map-type" select="$map-type"/>
 		</xsl:call-template>
 
 		<xsl:if test="string-length($text) > 1">
 			<xsl:call-template name="escape-text">
 				<xsl:with-param name="text" select="substring($text, 2)"/>
 				<xsl:with-param name="inline" select="$inline"/>
+				<xsl:with-param name="map-type" select="$map-type"/>
 			</xsl:call-template>
 		</xsl:if>
 
@@ -512,28 +522,55 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<xsl:template name="map-special">
 		<xsl:param name="character"/>
 		<xsl:param name="inline"/>
-		<xsl:param name="only-minimal"/> <!-- TODO -->
-		
+		<xsl:param name="only-minimal"/>
+		<xsl:param name="map-type"/>
+
+		<xsl:variable name="mapped-character">
+			<xsl:choose>
+				<xsl:when test="$map-type = 'typographic'">
+					<xsl:choose>
+						<xsl:when test="$character = '#'">hash</xsl:when>
+						<xsl:when test="$character = '$'">dollarSign</xsl:when>
+						<xsl:when test="$character = '%'">percentSign</xsl:when>
+						<xsl:when test="$character = '&amp;'">ampersand</xsl:when>
+						<xsl:when test="$character = '\'">backslash</xsl:when>
+						<xsl:when test="$character = '^'">circumflex</xsl:when>
+						<xsl:when test="$character = '_'">underscore</xsl:when>
+						<xsl:when test="$character = '{'">leftBrace</xsl:when>
+						<xsl:when test="$character = '}'">rightBrace</xsl:when>
+						<xsl:when test="$character = '|'">pipe</xsl:when>
+						<xsl:when test="$character = '~'">tilde</xsl:when>
+						<xsl:when test="$character = '&#160;'">nbsp</xsl:when>
+						<xsl:otherwise>
+							<xsl:value-of select="$character"/>
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:when>
+				<xsl:when test="$map-type = 'programmatic'">
+					<xsl:choose>
+						<xsl:when test="$character = '{'">leftBrace</xsl:when>
+						<xsl:when test="$character = '}'">rightBrace</xsl:when>
+						<xsl:when test="$character = '\'">backslash</xsl:when>
+						<xsl:otherwise>
+							<xsl:value-of select="$character"/>
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="$character"/>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
+
 		<xsl:choose>
-			<xsl:when test="$character = '$'">
-				<xsl:call-template name="parenthesise-text">
-					<xsl:with-param name="str" select="'dollarSign'"/>
-					<xsl:with-param name="inline" select="$inline"/>
-				</xsl:call-template>
-			</xsl:when>
-			<xsl:when test="$character = '#'">
-				<xsl:text>hash</xsl:text>
-			</xsl:when>
-			<xsl:when test="$character = '%'">
-				<xsl:text>percentSign</xsl:text>
-			</xsl:when>
-			<xsl:when test="$character = '\'">
-				<xsl:text>backslash</xsl:text>
+			<xsl:when test="$character = $mapped-character">
+				<xsl:value-of select="$character"/>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:if test="$inline = 'true'">
-					<xsl:value-of select="$character"/>
-				</xsl:if>
+				<xsl:call-template name="parenthesise-text">
+					<xsl:with-param name="str" select="$mapped-character"/>
+					<xsl:with-param name="inline" select="$inline"/>
+				</xsl:call-template>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
@@ -562,7 +599,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 	<!-- TODO 
 	
-	Escaping - in progress
 	InlineHtmlComment - in progress
 	Formatting - in progress
 	
