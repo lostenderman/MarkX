@@ -87,6 +87,30 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:value-of select="$value"/>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
+	
+	<xsl:template name="is-inline-html-comment">
+		<xsl:param name="content"/>
+		<xsl:value-of select="
+		starts-with($content, '&lt;!--') and
+		substring($content, string-length($content) - string-length('--&gt;') + 1) = '--&gt;' and
+		string-length($content) &gt;= 7
+		"/>
+	</xsl:template>
+
+	<xsl:template name="extract-comment-content">
+		<xsl:param name="content" />
+		<xsl:value-of select="substring($content, 5, string-length($content) - 7)"/>
+	</xsl:template>
+
+	<xsl:template name="is-valid-comment-content">
+		<xsl:param name="comment-content"/>
+		<xsl:value-of select="
+		not(starts-with($comment-content, '&gt;')) and
+		not(starts-with($comment-content, '-&gt;')) and
+		not(substring($comment-content, string-length($comment-content) - string-length('-') + 1) = '-') and
+		not(contains($comment-content, '--'))
+		"/>
+	</xsl:template>
 
 	<!-- ROOT -->
 
@@ -96,10 +120,19 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 	<!-- BLOCKS -->
 	
-	<!-- 2.0 has <xsl:value-of select="." separator=", " /> -->
-	
+	<xsl:template name="general-block">
+		<xsl:param name="begin-name"/>
+		<xsl:param name="end-name"/>
+
+		<xsl:value-of select="$begin-name"/>
+		<xsl:text>&#10;</xsl:text>
+		<xsl:call-template name="blocks"/>
+		<xsl:value-of select="$end-name"/>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
+		
 	<xsl:template name="blocks">
-		<xsl:for-each select="cm:paragraph|cm:list|cm:html_block|cm:block_quote|cm:thematic_break|cm:code_block">
+		<xsl:for-each select="cm:paragraph|cm:list|cm:html_block|cm:block_quote|cm:thematic_break|cm:code_block|cm:heading">
 			<xsl:apply-templates select="."></xsl:apply-templates>
 			<xsl:if test="position() != last()">
 				<xsl:copy-of select="$block-separator"/>
@@ -242,18 +275,24 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
     
 	<xsl:template match="cm:heading">
-        <xsl:text>heading</xsl:text>
-        <xsl:choose>
-            <xsl:when test="@level = 1">One</xsl:when>
-            <xsl:when test="@level = 2">Two</xsl:when>
-            <xsl:when test="@level = 3">Three</xsl:when>
-            <xsl:when test="@level = 4">Four</xsl:when>
-            <xsl:when test="@level = 5">Five</xsl:when>
-        	<xsl:when test="@level = 6">Six</xsl:when>
-        </xsl:choose>
-		<xsl:copy-of select="$inline-start"/>
-		<xsl:call-template name="inline"/>
-		<xsl:text>&#10;</xsl:text>
+		<xsl:variable name="heading-name">
+			<xsl:text>heading</xsl:text>
+			<xsl:choose>
+				<xsl:when test="@level = 1">One</xsl:when>
+				<xsl:when test="@level = 2">Two</xsl:when>
+				<xsl:when test="@level = 3">Three</xsl:when>
+				<xsl:when test="@level = 4">Four</xsl:when>
+				<xsl:when test="@level = 5">Five</xsl:when>
+        		<xsl:when test="@level = 6">Six</xsl:when>
+			</xsl:choose>
+		</xsl:variable>
+	
+		<xsl:call-template name="general-inline">
+			<xsl:with-param name="inline-name" select="$heading-name"/>
+			<xsl:with-param name="inline-content">
+				<xsl:call-template name="inline"/>
+			</xsl:with-param>
+		</xsl:call-template>
     </xsl:template>
 
 	<xsl:template match="cm:emph">
@@ -421,38 +460,57 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
-
+	
 	<xsl:template match="cm:html_inline">
 		<xsl:variable name="content" select="."/>
-
-		<xsl:variable name="is-comment">
-			<xsl:if test="(starts-with($content, '&lt;!--')) and 
-					(substring($content, string-length($content) - string-length('--&gt;') + 1) = '--&gt;') and 
-					(string-length($content) &gt;= 7)">
-				
-				<xsl:variable name="comment-content" select="substring($content, 5, string-length($content) - 7)"/>
-
-				<xsl:if test="not(starts-with($comment-content, '&gt;')) and 
-						not(starts-with($comment-content, '-&gt;')) and 
-						not((substring($comment-content, string-length($comment-content) - string-length('-') + 1) = '-')) and 
-						not(contains($comment-content, '--'))">
-					<xsl:value-of select="'true'"/>
-				</xsl:if>
-			</xsl:if>
+		
+		<xsl:variable name="is-valid-comment">
+			<xsl:call-template name="is-inline-html-comment">
+				<xsl:with-param name="content" select="$content">
+				</xsl:with-param>
+			</xsl:call-template>
 		</xsl:variable>
 		
 		<xsl:choose>
-			<xsl:when test="$is-comment = 'true'">
-				<xsl:text>inlineHtmlComment</xsl:text>: <xsl:value-of select="."/> <!-- TODO remove comment markers from content-->
+			<xsl:when test="$is-valid-comment = 'true'">
+				<xsl:variable name="comment-content">
+					<xsl:call-template name="extract-comment-content">
+						<xsl:with-param name="content" select="$content">
+						</xsl:with-param>
+					</xsl:call-template>
+				</xsl:variable>
+					
+				<xsl:variable name="is-valid-comment-content">
+					<xsl:call-template name="is-valid-comment-content">
+						<xsl:with-param name="comment-content" select="$comment-content">
+						</xsl:with-param>
+					</xsl:call-template>
+				</xsl:variable>
+					
+				<xsl:choose>
+					<xsl:when test="$is-valid-comment-content">
+						<xsl:call-template name="general-inline">
+							<xsl:with-param name="inline-name" select="'inlineHtmlComment'"/>
+							<xsl:with-param name="inline-content">
+								<xsl:call-template name="escape-text">
+									<xsl:with-param name="text" select="$comment-content"/>
+									<xsl:with-param name="inline" select="'true'"/>
+									<xsl:with-param name="map-type" select="'typographic'"/>
+								</xsl:call-template>
+							</xsl:with-param>
+						</xsl:call-template>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:text>inlineHtmlTag</xsl:text>: <xsl:value-of select="."/>
+					</xsl:otherwise>
+				</xsl:choose>
 			</xsl:when>
 			<xsl:otherwise>
 				<xsl:text>inlineHtmlTag</xsl:text>: <xsl:value-of select="."/>
 			</xsl:otherwise>
 		</xsl:choose>
-		
-		<xsl:text>&#10;</xsl:text>
-	</xsl:template>
 
+	</xsl:template>
 
 	<!-- SPECIAL CHARACTERS / ESCAPING -->
 
@@ -599,7 +657,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 	<!-- TODO 
 	
-	InlineHtmlComment - in progress
 	Formatting - in progress
 	
 	-->
