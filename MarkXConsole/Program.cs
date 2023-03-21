@@ -189,13 +189,39 @@ namespace MarkXConsoleUI
 						var parsed = Together.ParseXml(test.XML);
 						var parsed2 = Together.TransformXml(test.XML, options.IndentCode, options.Extensions);
 
-						if (parsed == parsed2)
-                        {
-							Console.WriteLine("EQUAL");
-                        }
+						parsed2 = parsed2.ReplaceLineEndings("\n");
 
-						Console.WriteLine(parsed2);
-						if (parsed == null)
+						var is_test = true;
+
+						if (!is_test)
+						{
+							parsed = parsed2;
+						}
+						//if (parsed == parsed2)
+						//                  {
+						//	Console.WriteLine("EQUAL");
+						//                  }
+
+						//                  foreach (char c in parsed)
+						//                  {
+						//                      Console.Write(System.Convert.ToInt32(c));
+						//                      Console.Write(" ");
+						//                  }
+
+						//                  Console.WriteLine("");
+
+						//                  foreach (char c in parsed2)
+						//                  {
+						//                      Console.Write(System.Convert.ToInt32(c));
+						//                      Console.Write(" ");
+						//                  }
+						if (is_test)
+						{
+							Console.WriteLine(parsed);
+							Console.WriteLine(parsed2);
+						}
+
+                        if (parsed == null)
 						{
 							if (inputFile.FileType == FileType.PossiblyXML)
 							{

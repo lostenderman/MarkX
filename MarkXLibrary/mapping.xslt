@@ -139,7 +139,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:text>&#10;</xsl:text>
 			</xsl:if>
 		</xsl:for-each>
-		<xsl:for-each select="cm:softbreak|cm:linebreak|cm:item">
+		<xsl:for-each select="cm:linebreak|cm:item">
 			<xsl:apply-templates select="."></xsl:apply-templates>
 		</xsl:for-each>
 	</xsl:template>
@@ -157,12 +157,14 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     </xsl:template>
 
 	<xsl:template match="cm:softbreak">
+	</xsl:template>
+
+	<xsl:template name="inline-softbreak">
 		<xsl:text> </xsl:text>
-		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
 	<xsl:template match="cm:linebreak">
-		<xsl:text>lineBreak</xsl:text>
+		<xsl:text>hardLineBreak</xsl:text>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
@@ -178,7 +180,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 		<xsl:copy-of select="$list-type"/>
 		<xsl:copy-of select="$block-position-start"/>
-		<xsl:if test="@tight">
+		<xsl:if test="@tight = 'true'">
 			<xsl:copy-of select="$tight"/>
 		</xsl:if>
 		<xsl:text>&#10;</xsl:text>
@@ -188,16 +190,16 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 		<xsl:copy-of select="$list-type"/>
 		<xsl:copy-of select="$block-position-end"/>
-		<xsl:if test="@tight">
+		<xsl:if test="@tight = 'true'">
 			<xsl:copy-of select="$tight"/>
 		</xsl:if>
 	</xsl:template>
 	
 	<xsl:template match="cm:block_quote">
-        <xsl:text>blockquoteBegin</xsl:text>
+        <xsl:text>blockQuoteBegin</xsl:text>
 		<xsl:text>&#10;</xsl:text>
         <xsl:call-template name="blocks"/>
-        <xsl:text>blockquoteEnd</xsl:text>
+        <xsl:text>blockQuoteEnd</xsl:text>
 		<xsl:text>&#10;</xsl:text>
     </xsl:template>
 
@@ -247,6 +249,9 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:choose>
 					<xsl:when test="local-name() = 'text'">
 						<xsl:apply-templates select="." mode="inline"/>
+					</xsl:when>
+					<xsl:when test="local-name() = 'softbreak'">
+						<xsl:call-template name="inline-softbreak"/>
 					</xsl:when>
 					<xsl:otherwise>
 						<xsl:variable name="els">
@@ -439,7 +444,11 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:call-template name="multiline-attribute">
 					<xsl:with-param name="name" select="'infostring'"/>
 					<xsl:with-param name="value">
-						<xsl:value-of select ="."/>
+						<xsl:call-template name="escape-text">
+							<xsl:with-param name="text" select="@info"/>
+							<xsl:with-param name="inline" select="'true'"/>
+							<xsl:with-param name="map-type" select="'programmatic'"/>
+						</xsl:call-template>
 					</xsl:with-param>
 				</xsl:call-template>
 				
@@ -492,8 +501,14 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 						<xsl:call-template name="general-inline">
 							<xsl:with-param name="inline-name" select="'inlineHtmlComment'"/>
 							<xsl:with-param name="inline-content">
+								<xsl:variable name="content-with-replaced-newlines">
+									<xsl:call-template name="replace-newlines-with-spaces">
+										<xsl:with-param name="text" select="$comment-content"/>
+									</xsl:call-template>
+								</xsl:variable>
+
 								<xsl:call-template name="escape-text">
-									<xsl:with-param name="text" select="$comment-content"/>
+									<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
 									<xsl:with-param name="inline" select="'true'"/>
 									<xsl:with-param name="map-type" select="'typographic'"/>
 								</xsl:call-template>
@@ -501,12 +516,42 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 						</xsl:call-template>
 					</xsl:when>
 					<xsl:otherwise>
-						<xsl:text>inlineHtmlTag</xsl:text>: <xsl:value-of select="."/>
+						<xsl:call-template name="general-inline">
+							<xsl:with-param name="inline-name" select="'inlineHtmlTag'"/>
+							<xsl:with-param name="inline-content">
+								<xsl:variable name="content-with-replaced-newlines">
+									<xsl:call-template name="replace-newlines-with-spaces">
+										<xsl:with-param name="text" select="."/>
+									</xsl:call-template>
+								</xsl:variable>
+
+								<xsl:call-template name="escape-text">
+									<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
+									<xsl:with-param name="inline" select="'true'"/>
+									<xsl:with-param name="map-type" select="'typographic'"/>
+								</xsl:call-template>
+							</xsl:with-param>
+						</xsl:call-template>
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:text>inlineHtmlTag</xsl:text>: <xsl:value-of select="."/>
+				<xsl:call-template name="general-inline">
+					<xsl:with-param name="inline-name" select="'inlineHtmlTag'"/>
+					<xsl:with-param name="inline-content">
+						<xsl:variable name="content-with-replaced-newlines">
+							<xsl:call-template name="replace-newlines-with-spaces">
+								<xsl:with-param name="text" select="."/>
+							</xsl:call-template>
+						</xsl:variable>
+
+						<xsl:call-template name="escape-text">
+							<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
+							<xsl:with-param name="inline" select="'true'"/>
+							<xsl:with-param name="map-type" select="'typographic'"/>
+						</xsl:call-template>
+					</xsl:with-param>
+				</xsl:call-template>
 			</xsl:otherwise>
 		</xsl:choose>
 
@@ -599,9 +644,9 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 						<xsl:when test="$character = '|'">pipe</xsl:when>
 						<xsl:when test="$character = '~'">tilde</xsl:when>
 						<xsl:when test="$character = '&#160;'">nbsp</xsl:when>
-						<xsl:otherwise>
+						<xsl:when test="$inline = 'true'">
 							<xsl:value-of select="$character"/>
-						</xsl:otherwise>
+						</xsl:when>
 					</xsl:choose>
 				</xsl:when>
 				<xsl:when test="$map-type = 'programmatic'">
@@ -609,18 +654,20 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 						<xsl:when test="$character = '{'">leftBrace</xsl:when>
 						<xsl:when test="$character = '}'">rightBrace</xsl:when>
 						<xsl:when test="$character = '\'">backslash</xsl:when>
-						<xsl:otherwise>
+						<xsl:when test="$inline = 'true'">
 							<xsl:value-of select="$character"/>
-						</xsl:otherwise>
+						</xsl:when>
 					</xsl:choose>
 				</xsl:when>
-				<xsl:otherwise>
+				<xsl:when test="$inline = 'true'">
 					<xsl:value-of select="$character"/>
-				</xsl:otherwise>
+				</xsl:when>
 			</xsl:choose>
 		</xsl:variable>
 
 		<xsl:choose>
+			<xsl:when test="$mapped-character = ''">
+			</xsl:when>
 			<xsl:when test="$character = $mapped-character">
 				<xsl:value-of select="$character"/>
 			</xsl:when>
