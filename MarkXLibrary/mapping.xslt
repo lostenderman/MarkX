@@ -184,9 +184,27 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			<xsl:copy-of select="$tight"/>
 		</xsl:if>
 		<xsl:text>&#10;</xsl:text>
-		
-		<!-- ONLY ITEMS CAN BE HERE (ONE TYPE) -->
-		<xsl:call-template name="blocks"/>
+
+		<xsl:for-each select="cm:item">
+			<xsl:choose>
+				<xsl:when test="../@type = 'bullet'">
+					<xsl:text>ul</xsl:text>
+					<xsl:text>Item</xsl:text>
+					<xsl:text>&#10;</xsl:text>
+					<xsl:call-template name="blocks"/>
+					<xsl:text>ul</xsl:text>
+					<xsl:text>Item</xsl:text>
+					<xsl:text>End</xsl:text>
+				</xsl:when>
+				<xsl:when test="../@type = 'ordered'">
+					<xsl:text>ol</xsl:text><xsl:text>Item</xsl:text><xsl:text>WithNumber</xsl:text>: <xsl:value-of select="../@start + position() - 1"/>
+					<xsl:text>&#10;</xsl:text>
+					<xsl:call-template name="blocks"/>
+					<xsl:text>ol</xsl:text><xsl:text>Item</xsl:text><xsl:text>End</xsl:text>
+				</xsl:when>
+			</xsl:choose>
+			<xsl:text>&#10;</xsl:text>
+		</xsl:for-each>
 
 		<xsl:copy-of select="$list-type"/>
 		<xsl:copy-of select="$block-position-end"/>
@@ -232,7 +250,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:text>End</xsl:text>
 			</xsl:when>
 			<xsl:when test="../@type = 'ordered'">
-				<xsl:text>ol</xsl:text><xsl:text>Item</xsl:text><xsl:text>WithNumber</xsl:text>: <xsl:value-of select="../@start + position() - 1"/>
+				<xsl:text>ol</xsl:text><xsl:text>Item</xsl:text><xsl:text>WithNumber</xsl:text>: <xsl:value-of select="position()"/>
 				<xsl:text>&#10;</xsl:text>
 				<xsl:call-template name="blocks"/>
 				<xsl:text>ol</xsl:text><xsl:text>Item</xsl:text><xsl:text>End</xsl:text>
