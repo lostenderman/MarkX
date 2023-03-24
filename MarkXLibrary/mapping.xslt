@@ -88,7 +88,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 	
-	<xsl:template name="is-inline-html-comment">
+	<xsl:template name="is-html-comment">
 		<xsl:param name="content"/>
 		<xsl:value-of select="
 		starts-with($content, '&lt;!--') and
@@ -110,6 +110,68 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		not(substring($comment-content, string-length($comment-content) - string-length('-') + 1) = '-') and
 		not(contains($comment-content, '--'))
 		"/>
+	</xsl:template>
+	
+	<!-- SPECIAL HELPERS -->
+
+	<xsl:template name="process-text">
+		<xsl:param name="text"/>
+		<xsl:param name="inline"/>
+		<xsl:param name="map-type"/>
+
+		<xsl:variable name="content" select="$text"/>
+
+		<xsl:variable name="content-with-replaced-newlines">
+			<xsl:call-template name="replace-newlines-with-spaces">
+				<xsl:with-param name="text" select="$content"/>
+			</xsl:call-template>
+		</xsl:variable>
+
+		<xsl:call-template name="escape-text">
+			<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
+			<xsl:with-param name="inline" select="$inline"/>
+			<xsl:with-param name="map-type" select="$map-type"/>
+		</xsl:call-template>
+	</xsl:template>
+
+	<xsl:template name="check-html-comment">
+		<xsl:variable name="content" select="."/>
+
+		<xsl:variable name="is-valid-comment">
+			<xsl:call-template name="is-html-comment">
+				<xsl:with-param name="content" select="$content"/>
+			</xsl:call-template>
+		</xsl:variable>
+
+		<xsl:choose>
+			<xsl:when test="$is-valid-comment = 'true'">
+				<xsl:variable name="comment-content">
+					<xsl:call-template name="extract-comment-content">
+						<xsl:with-param name="content" select="$content">
+						</xsl:with-param>
+					</xsl:call-template>
+				</xsl:variable>
+
+				<xsl:variable name="is-valid-comment-content">
+					<xsl:call-template name="is-valid-comment-content">
+						<xsl:with-param name="comment-content" select="$comment-content">
+						</xsl:with-param>
+					</xsl:call-template>
+				</xsl:variable>
+
+				<xsl:choose>
+					<xsl:when test="$is-valid-comment-content">
+						<xsl:value-of select="$comment-content"/>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="'--'"/>
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="'--'"/>
+			</xsl:otherwise>
+		</xsl:choose>
 	</xsl:template>
 
 	<!-- ROOT -->
@@ -349,37 +411,19 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		</xsl:call-template>
 	</xsl:template>
 	
-	<xsl:template match="cm:text">
-		<xsl:variable name="content" select="."/>
-
-		<xsl:variable name="content-with-replaced-newlines">
-			<xsl:call-template name="replace-newlines-with-spaces">
-				<xsl:with-param name="text" select="$content"/>
-			</xsl:call-template>
-		</xsl:variable>
-		
-		<xsl:call-template name="escape-text">
-			<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
+	<xsl:template match="cm:text">		
+		<xsl:call-template name="process-text">
+			<xsl:with-param name="text" select="."/>
 			<xsl:with-param name="map-type" select="'typographic'"/>
 		</xsl:call-template>
-		
 	</xsl:template>
 
 	<xsl:template match="cm:text" mode="inline">
-		<xsl:variable name="content" select="."/>
-
-		<xsl:variable name="content-with-replaced-newlines">
-			<xsl:call-template name="replace-newlines-with-spaces">
-				<xsl:with-param name="text" select="$content"/>
-			</xsl:call-template>
-		</xsl:variable>
-
-		<xsl:call-template name="escape-text">
-			<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
+		<xsl:call-template name="process-text">
+			<xsl:with-param name="text" select="."/>
 			<xsl:with-param name="inline" select="'true'"/>
 			<xsl:with-param name="map-type" select="'typographic'"/>
 		</xsl:call-template>
-	
 	</xsl:template>
 
 	<xsl:template match="cm:link | cm:image">
@@ -462,10 +506,10 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:call-template name="multiline-attribute">
 					<xsl:with-param name="name" select="'infostring'"/>
 					<xsl:with-param name="value">
-						<xsl:call-template name="escape-text">
+						<xsl:call-template name="process-text">
 							<xsl:with-param name="text" select="@info"/>
 							<xsl:with-param name="inline" select="'true'"/>
-							<xsl:with-param name="map-type" select="'programmatic'"/>
+							<xsl:with-param name="map-type" select="'typographic'"/>
 						</xsl:call-template>
 					</xsl:with-param>
 				</xsl:call-template>
@@ -478,93 +522,59 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 	
 	<xsl:template match="cm:html_block">
-		<xsl:call-template name="general-inline">
-			<xsl:with-param name="inline-name" select="'inputBlockHtmlElement'"/>
-			<xsl:with-param name="inline-content">
-				<xsl:call-template name="enclose-hash">
-					<xsl:with-param name="hashed-content" select="ext:Hash(.)"/>
-				</xsl:call-template>
-			</xsl:with-param>
-		</xsl:call-template>
-	</xsl:template>
-	
-	<xsl:template match="cm:html_inline">
-		<xsl:variable name="content" select="."/>
-		
-		<xsl:variable name="is-valid-comment">
-			<xsl:call-template name="is-inline-html-comment">
-				<xsl:with-param name="content" select="$content">
-				</xsl:with-param>
+		<xsl:variable name="comment-content">
+			<xsl:call-template name="check-html-comment">
+				<xsl:with-param name="content" select="."/>
 			</xsl:call-template>
 		</xsl:variable>
 		
 		<xsl:choose>
-			<xsl:when test="$is-valid-comment = 'true'">
-				<xsl:variable name="comment-content">
-					<xsl:call-template name="extract-comment-content">
-						<xsl:with-param name="content" select="$content">
-						</xsl:with-param>
-					</xsl:call-template>
-				</xsl:variable>
-					
-				<xsl:variable name="is-valid-comment-content">
-					<xsl:call-template name="is-valid-comment-content">
-						<xsl:with-param name="comment-content" select="$comment-content">
-						</xsl:with-param>
-					</xsl:call-template>
-				</xsl:variable>
-					
-				<xsl:choose>
-					<xsl:when test="$is-valid-comment-content">
-						<xsl:call-template name="general-inline">
-							<xsl:with-param name="inline-name" select="'inlineHtmlComment'"/>
-							<xsl:with-param name="inline-content">
-								<xsl:variable name="content-with-replaced-newlines">
-									<xsl:call-template name="replace-newlines-with-spaces">
-										<xsl:with-param name="text" select="$comment-content"/>
-									</xsl:call-template>
-								</xsl:variable>
-
-								<xsl:call-template name="escape-text">
-									<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
-									<xsl:with-param name="inline" select="'true'"/>
-									<xsl:with-param name="map-type" select="'typographic'"/>
-								</xsl:call-template>
-							</xsl:with-param>
+			<xsl:when test="not($comment-content = '--')">
+				<xsl:text>blockHtmlCommentBegin</xsl:text>
+				<xsl:text>&#10;</xsl:text>
+				<xsl:call-template name="blocks"/>
+				<xsl:text>blockHtmlCommentEnd</xsl:text>
+				<xsl:text>&#10;</xsl:text>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:call-template name="general-inline">
+					<xsl:with-param name="inline-name" select="'inputBlockHtmlElement'"/>
+					<xsl:with-param name="inline-content">
+						<xsl:call-template name="enclose-hash">
+							<xsl:with-param name="hashed-content" select="ext:Hash(.)"/>
 						</xsl:call-template>
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:call-template name="general-inline">
-							<xsl:with-param name="inline-name" select="'inlineHtmlTag'"/>
-							<xsl:with-param name="inline-content">
-								<xsl:variable name="content-with-replaced-newlines">
-									<xsl:call-template name="replace-newlines-with-spaces">
-										<xsl:with-param name="text" select="."/>
-									</xsl:call-template>
-								</xsl:variable>
+					</xsl:with-param>
+				</xsl:call-template>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
 
-								<xsl:call-template name="escape-text">
-									<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
-									<xsl:with-param name="inline" select="'true'"/>
-									<xsl:with-param name="map-type" select="'typographic'"/>
-								</xsl:call-template>
-							</xsl:with-param>
+	<xsl:template match="cm:html_inline">		
+		<xsl:variable name="comment-content">
+			<xsl:call-template name="check-html-comment">
+				<xsl:with-param name="content" select="."/>
+			</xsl:call-template>
+		</xsl:variable>
+
+		<xsl:choose>
+			<xsl:when test="not($comment-content = '--')">
+				<xsl:call-template name="general-inline">
+					<xsl:with-param name="inline-name" select="'inlineHtmlComment'"/>
+					<xsl:with-param name="inline-content">
+						<xsl:call-template name="process-text">
+							<xsl:with-param name="text" select="$comment-content"/>
+							<xsl:with-param name="inline" select="'true'"/>
+							<xsl:with-param name="map-type" select="'typographic'"/>
 						</xsl:call-template>
-					</xsl:otherwise>
-				</xsl:choose>
+					</xsl:with-param>
+				</xsl:call-template>
 			</xsl:when>
 			<xsl:otherwise>
 				<xsl:call-template name="general-inline">
 					<xsl:with-param name="inline-name" select="'inlineHtmlTag'"/>
 					<xsl:with-param name="inline-content">
-						<xsl:variable name="content-with-replaced-newlines">
-							<xsl:call-template name="replace-newlines-with-spaces">
-								<xsl:with-param name="text" select="."/>
-							</xsl:call-template>
-						</xsl:variable>
-
-						<xsl:call-template name="escape-text">
-							<xsl:with-param name="text" select="$content-with-replaced-newlines"/>
+						<xsl:call-template name="process-text">
+							<xsl:with-param name="text" select="."/>
 							<xsl:with-param name="inline" select="'true'"/>
 							<xsl:with-param name="map-type" select="'typographic'"/>
 						</xsl:call-template>
@@ -572,7 +582,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				</xsl:call-template>
 			</xsl:otherwise>
 		</xsl:choose>
-
+		
 	</xsl:template>
 
 	<!-- SPECIAL CHARACTERS / ESCAPING -->
@@ -723,6 +733,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<!-- TODO 
 	
 	Formatting - in progress
+	HtmlBlockComment
 	
 	-->
 

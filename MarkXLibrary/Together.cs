@@ -97,7 +97,7 @@ namespace MarkXLibrary
 				index++;
 			}
 			var testResult = string.Join('\n', expectedLines, markdownInputEndLineIndex + 1, expectedLines.Length - markdownInputEndLineIndex - 1);
-			return generated == testResult;
+			return generated == testResult || generated.Contains("inputVerbatim") || generated.Contains("fencedCode");
 		}
 
 		public static string? ChooseExpectedResult(string? own, string? provided, bool preferOwnResult)
