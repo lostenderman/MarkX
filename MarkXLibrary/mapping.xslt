@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0"
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
 xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
-    <xsl:output method="text" omit-xml-declaration="yes" encoding="UTF-8" indent="no"/>
+	<xsl:output method="text" omit-xml-declaration="yes" encoding="UTF-8" indent="no"/>
 
 	<xsl:param name="indented-code"></xsl:param>
 	<xsl:param name="extensions"></xsl:param>
-	
+
 	<xsl:variable name="block-separator" select="'interblockSeparator'"/>
 	<xsl:variable name="block-position-start" select="'Begin'"/>
 	<xsl:variable name="block-position-end" select="'End'"/>
@@ -34,12 +34,11 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<xsl:template name="is-extension-enabled">
 		<xsl:param name="current-extensions"/>
 		<xsl:param name="extension-name"/>
-				
+
 		<xsl:if test="$current-extensions != ''">
-			
 			<xsl:variable name="first-extension" select="substring-before($current-extensions, ' ')"/>
 			<xsl:variable name="remaining-extensions" select="substring-after($current-extensions, ' ')"/>
-			
+
 			<xsl:choose>
 				<xsl:when test="$first-extension = ''">
 					<xsl:if test="$current-extensions = $extension-name">
@@ -68,26 +67,26 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 		<xsl:value-of select="translate($text, '&#10;', ' ')"/>
 	</xsl:template>
-	
+
 	<xsl:template name="enclose-hash">
 		<xsl:param name="hashed-content"/>
-		
+
 		<xsl:value-of select="$verbatim-directory"/>
 		<xsl:value-of select="$hashed-content"/>
 		<xsl:value-of select="$verbatim"/>
 	</xsl:template>
-	
+
 	<xsl:template name="multiline-attribute">
 		<xsl:param name="name"/>
 		<xsl:param name="value"/>
-		
+
 		<xsl:value-of select="$multiline-attribute-start"/>
 		<xsl:value-of select="$name"/>
 		<xsl:value-of select="$inline-start"/>
 		<xsl:value-of select="$value"/>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
-	
+
 	<xsl:template name="is-html-comment">
 		<xsl:param name="content"/>
 		<xsl:value-of select="
@@ -111,7 +110,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		not(contains($comment-content, '--'))
 		"/>
 	</xsl:template>
-	
+
 	<!-- SPECIAL HELPERS -->
 
 	<xsl:template name="process-text">
@@ -174,25 +173,32 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		</xsl:choose>
 	</xsl:template>
 
-	<!-- ROOT -->
+	<!-- FORMAT -->
 
-	<xsl:template match="/">
-        <xsl:apply-templates select="cm:document"/>
-    </xsl:template>
-
-	<!-- BLOCKS -->
-	
 	<xsl:template name="general-block">
-		<xsl:param name="begin-name"/>
-		<xsl:param name="end-name"/>
+		<xsl:param name="name"/>
 
-		<xsl:value-of select="$begin-name"/>
+		<xsl:value-of select="$name"/>
+		<xsl:copy-of select="$block-position-start"/>
 		<xsl:text>&#10;</xsl:text>
 		<xsl:call-template name="blocks"/>
-		<xsl:value-of select="$end-name"/>
+		<xsl:value-of select="$name"/>
+		<xsl:copy-of select="$block-position-end"/>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
-		
+
+	<xsl:template name="general-inline">
+		<xsl:param name="inline-name"/>
+		<xsl:param name="inline-content"/>
+
+		<xsl:value-of select="$inline-name"/>
+		<xsl:copy-of select="$inline-start"/>
+		<xsl:value-of select="$inline-content"/>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
+
+	<!-- RUNNERS -->
+
 	<xsl:template name="blocks">
 		<xsl:for-each select="cm:paragraph|cm:list|cm:html_block|cm:block_quote|cm:thematic_break|cm:code_block|cm:heading">
 			<xsl:apply-templates select="."></xsl:apply-templates>
@@ -206,17 +212,49 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		</xsl:for-each>
 	</xsl:template>
 
-    <xsl:template match="cm:document">
-        <xsl:text>documentBegin</xsl:text>
-		<xsl:text>&#10;</xsl:text>
-		<xsl:call-template name="blocks"/>
-        <xsl:text>documentEnd</xsl:text>
-		<xsl:text>&#10;</xsl:text>
-    </xsl:template>
+	<xsl:template name="inline">
+		<xsl:variable name="sub">
+			<xsl:for-each select="cm:*">
+				<xsl:choose>
+					<xsl:when test="local-name() = 'text'">
+						<xsl:apply-templates select="." mode="inline"/>
+					</xsl:when>
+					<xsl:when test="local-name() = 'softbreak'">
+						<xsl:call-template name="inline-softbreak"/>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:variable name="els">
+							<xsl:apply-templates select="." />
+						</xsl:variable>
 
-    <xsl:template match="cm:paragraph">
-        <xsl:apply-templates select="cm:*"/>
-    </xsl:template>
+						<xsl:call-template name="parenthesise-group">
+							<xsl:with-param name="str" select="$els"/>
+						</xsl:call-template>
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:for-each>
+		</xsl:variable>
+
+		<xsl:value-of select="$sub"/>
+	</xsl:template>
+
+	<!-- ROOT -->
+
+	<xsl:template match="/">
+		<xsl:apply-templates select="cm:document"/>
+	</xsl:template>
+
+	<!-- BLOCKS -->
+
+	<xsl:template match="cm:document">
+		<xsl:call-template name="general-block">
+			<xsl:with-param name="name" select="'document'"/>
+		</xsl:call-template>
+	</xsl:template>
+
+	<xsl:template match="cm:paragraph">
+		<xsl:apply-templates select="cm:*"/>
+	</xsl:template>
 
 	<xsl:template match="cm:softbreak">
 	</xsl:template>
@@ -274,14 +312,12 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			<xsl:copy-of select="$tight"/>
 		</xsl:if>
 	</xsl:template>
-	
+
 	<xsl:template match="cm:block_quote">
-        <xsl:text>blockQuoteBegin</xsl:text>
-		<xsl:text>&#10;</xsl:text>
-        <xsl:call-template name="blocks"/>
-        <xsl:text>blockQuoteEnd</xsl:text>
-		<xsl:text>&#10;</xsl:text>
-    </xsl:template>
+		<xsl:call-template name="general-block">
+			<xsl:with-param name="name" select="'blockQuote'"/>
+		</xsl:call-template>
+	</xsl:template>
 
 	<xsl:template match="cm:list">	
 		<xsl:choose>
@@ -298,8 +334,8 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		</xsl:choose>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
-	
-	<!-- TODO SIMPLIFY -->
+
+	<!-- TODO SIMPLIFY -> REMOVE? -->
 	<xsl:template match="cm:item">
 		<xsl:choose>
 			<xsl:when test="../@type = 'bullet'">
@@ -323,42 +359,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 	<!-- INLINE -->
 
-	<xsl:template name="inline">
-		<xsl:variable name="sub">
-			<xsl:for-each select="cm:*">
-				<xsl:choose>
-					<xsl:when test="local-name() = 'text'">
-						<xsl:apply-templates select="." mode="inline"/>
-					</xsl:when>
-					<xsl:when test="local-name() = 'softbreak'">
-						<xsl:call-template name="inline-softbreak"/>
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:variable name="els">
-							<xsl:apply-templates select="." />
-						</xsl:variable>
-					
-						<xsl:call-template name="parenthesise-group">
-							<xsl:with-param name="str" select="$els"/>
-						</xsl:call-template>
-					</xsl:otherwise>
-				</xsl:choose>
-			</xsl:for-each>
-		</xsl:variable>
-
-		<xsl:value-of select="$sub"/>
-	</xsl:template>
-
-	<xsl:template name="general-inline">
-		<xsl:param name="inline-name"/>
-		<xsl:param name="inline-content"/>
-
-		<xsl:value-of select="$inline-name"/>
-		<xsl:copy-of select="$inline-start"/>
-		<xsl:value-of select="$inline-content"/>
-		<xsl:text>&#10;</xsl:text>
-	</xsl:template>
-    
 	<xsl:template match="cm:heading">
 		<xsl:variable name="heading-name">
 			<xsl:text>heading</xsl:text>
@@ -368,17 +368,17 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:when test="@level = 3">Three</xsl:when>
 				<xsl:when test="@level = 4">Four</xsl:when>
 				<xsl:when test="@level = 5">Five</xsl:when>
-        		<xsl:when test="@level = 6">Six</xsl:when>
+				<xsl:when test="@level = 6">Six</xsl:when>
 			</xsl:choose>
 		</xsl:variable>
-	
+
 		<xsl:call-template name="general-inline">
 			<xsl:with-param name="inline-name" select="$heading-name"/>
 			<xsl:with-param name="inline-content">
 				<xsl:call-template name="inline"/>
 			</xsl:with-param>
 		</xsl:call-template>
-    </xsl:template>
+	</xsl:template>
 
 	<xsl:template match="cm:emph">
 		<xsl:call-template name="general-inline">
@@ -387,7 +387,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:call-template name="inline"/>
 			</xsl:with-param>
 		</xsl:call-template>
-    </xsl:template>
+	</xsl:template>
 
 	<xsl:template match="cm:strong">
 		<xsl:call-template name="general-inline">
@@ -397,7 +397,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
-	
+
 	<xsl:template match="cm:code">
 		<xsl:call-template name="general-inline">
 			<xsl:with-param name="inline-name" select="'codeSpan'"/>
@@ -410,7 +410,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
-	
+
 	<xsl:template match="cm:text">		
 		<xsl:call-template name="process-text">
 			<xsl:with-param name="text" select="."/>
@@ -430,14 +430,14 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:copy-of select="$multiline-position-start"/>
 		<xsl:value-of select ="name(.)"/>
 		<xsl:text>&#10;</xsl:text>
-		
+
 		<xsl:call-template name="multiline-attribute">
 			<xsl:with-param name="name" select="'label'"/>
 			<xsl:with-param name="value">
 				<xsl:call-template name="inline"/>
 			</xsl:with-param>
 		</xsl:call-template>
-		
+
 		<xsl:call-template name="multiline-attribute">
 			<xsl:with-param name="name" select="'URI'"/>
 			<xsl:with-param name="value">
@@ -448,18 +448,18 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				</xsl:call-template>
 			</xsl:with-param>
 		</xsl:call-template>
-		
+
 		<xsl:call-template name="multiline-attribute">
 			<xsl:with-param name="name" select="'title'"/>
 			<xsl:with-param name="value">
-				<xsl:call-template name="escape-text">
+				<xsl:call-template name="process-text">
 					<xsl:with-param name="text" select="@title"/>
 					<xsl:with-param name="inline" select="'true'"/>
 					<xsl:with-param name="map-type" select="'typographic'"/>
 				</xsl:call-template>
 			</xsl:with-param>
 		</xsl:call-template>
-	
+
 		<xsl:copy-of select="$multiline-position-end"/>
 		<xsl:value-of select ="name(.)"/>
 		<xsl:text>&#10;</xsl:text>
@@ -473,7 +473,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 						<xsl:with-param name="str" select="." />
 					</xsl:call-template>
 				</xsl:variable>
-			
+
 				<xsl:call-template name="general-inline">
 					<xsl:with-param name="inline-name" select="'inputVerbatim'"/>
 					<xsl:with-param name="inline-content">
@@ -487,13 +487,13 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				<xsl:copy-of select="$multiline-position-start"/>
 				<xsl:text>fencedCode</xsl:text>
 				<xsl:text>&#10;</xsl:text>
-				
+
 				<xsl:variable name="content">
 					<xsl:call-template name="remove-last">
 						<xsl:with-param name="str" select="." />
 					</xsl:call-template>
 				</xsl:variable>
-				
+
 				<xsl:call-template name="multiline-attribute">
 					<xsl:with-param name="name" select="'src'"/>
 					<xsl:with-param name="value">
@@ -502,7 +502,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 						</xsl:call-template>
 					</xsl:with-param>
 				</xsl:call-template>
-				
+
 				<xsl:call-template name="multiline-attribute">
 					<xsl:with-param name="name" select="'infostring'"/>
 					<xsl:with-param name="value">
@@ -513,21 +513,21 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 						</xsl:call-template>
 					</xsl:with-param>
 				</xsl:call-template>
-				
+
 				<xsl:copy-of select="$multiline-position-end"/>
 				<xsl:text>fencedCode</xsl:text>
 			</xsl:otherwise>
 		</xsl:choose>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
-	
+
 	<xsl:template match="cm:html_block">
 		<xsl:variable name="comment-content">
 			<xsl:call-template name="check-html-comment">
 				<xsl:with-param name="content" select="."/>
 			</xsl:call-template>
 		</xsl:variable>
-		
+
 		<xsl:choose>
 			<xsl:when test="not($comment-content = '--')">
 				<xsl:text>blockHtmlCommentBegin</xsl:text>
@@ -709,7 +709,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<!-- EXTENSIONS -->
-	
+
 	<!-- TODO SPECIFY AS BLOCK, ADD TO BLOCKS -->
 	<xsl:template match="cm:line_block">
 		<xsl:variable name="is-enabled">
@@ -722,19 +722,17 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		</xsl:variable>
 		
 		<xsl:if test="$is-enabled = 'true()'">
-			<xsl:text>lineBlockBegin</xsl:text>
-			<xsl:text>&#10;</xsl:text>
-			<xsl:apply-templates select="cm:*" />
-			<xsl:text>lineBlockEnd</xsl:text>
-			<xsl:text>&#10;</xsl:text>
+			<xsl:call-template name="general-block">
+				<xsl:with-param name="name" select="'lineBlock'"/>
+			</xsl:call-template>
 		</xsl:if>
 	</xsl:template>
 
 	<!-- TODO 
-	
+
 	Formatting - in progress
 	HtmlBlockComment
-	
+
 	-->
 
 	<!-- TODO CHANGES SINCE MARKX 1.0 - SECTIONS -->
