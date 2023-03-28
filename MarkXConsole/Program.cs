@@ -80,7 +80,7 @@ namespace MarkXConsoleUI
 			var allSections = GroupSections(inputFiles);
 			var allValidTests = allSections.SelectMany(x => x.Tests).Where(x => x.IsValid).ToList();
 
-			if (allValidTests.Count() == 1 && options.ParseToFile)
+			if (allValidTests.Count == 1 && options.ParseToFile)
 			{
 				Writer.WriteTest(options, allValidTests.First(), options.Output);
 				return;
@@ -175,6 +175,7 @@ namespace MarkXConsoleUI
 			{
 				return;
 			}
+
 			foreach (var inputFile in inputFiles)
 			{
 				foreach (var section in inputFile.Sections)
@@ -189,9 +190,7 @@ namespace MarkXConsoleUI
 						var parsed = Together.ParseXml(test.XML);
 						var parsed2 = Together.TransformXml(test.XML, options.IndentCode, options.Extensions);
 
-						parsed2 = parsed2.ReplaceLineEndings("\n");
-
-						var is_test = true;
+						var is_test = false;
 
 						if (!is_test)
 						{

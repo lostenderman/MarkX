@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Reflection;
+using System.Security.Cryptography;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
@@ -25,6 +26,7 @@ namespace MarkXLibrary
 
 	public static class Together
 	{
+		// TODO load from parameter from calling function?
 		private static string TransformPath { get; } = @"C:\Users\andre\source\repos\MarkX\MarkXLibrary\mapping.xslt";
 		private static XslCompiledTransform Xslt { get; } = new XslCompiledTransform();
 
@@ -33,7 +35,7 @@ namespace MarkXLibrary
 			LoadTransformation();
 		}
 		public static void LoadTransformation()
-		{
+		{ 
 			if (TransformPath == null || !File.Exists(TransformPath))
 			{
 				return;
@@ -151,18 +153,18 @@ namespace MarkXLibrary
 		{
 			var output = "";
 
-			XsltExtension xsltExtension = new XsltExtension();
-			XsltArgumentList xsltArguments = new XsltArgumentList();
+			XsltExtension xsltExtension = new();
+			XsltArgumentList xsltArguments = new();
 			xsltArguments.AddExtensionObject("mark:ext", xsltExtension);
 			xsltArguments.AddParam("indented-code", "", indentCode);
 			xsltArguments.AddParam("extensions", "", string.Join(" ", extensionList));
 
-			using (StringReader stringReader = new StringReader(xml))
+			using (StringReader stringReader = new(xml))
 			{
-				using (XmlTextReader xmlReader = new XmlTextReader(stringReader))
+				using (XmlTextReader xmlReader = new(stringReader))
 				{
 					xmlReader.XmlResolver = null;
-					using (StringWriter stringWriter = new StringWriter())
+					using (StringWriter stringWriter = new())
 					{
 						using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, Xslt.OutputSettings))
 						{
@@ -173,7 +175,7 @@ namespace MarkXLibrary
 				}
 			}
 
-			return output;
+			return output.ReplaceLineEndings("\n");
 		}
 	}
 }
