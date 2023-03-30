@@ -1,6 +1,6 @@
 using System;
 
-namespace MarkXLibrary
+namespace MarkX.Core
 {
 	public class FallCondition
 	{

@@ -10,8 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkXLibrary", "MarkXLibrary\MarkXLibrary.csproj", "{497B6271-312E-4CFE-92B7-9BAE8F6F3AC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkXTesting", "MarkXTesting\MarkXTesting.csproj", "{797FC63F-A338-41E0-BE33-F985F10BD71C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkXConsole", "MarkXConsole\MarkXConsole.csproj", "{18067C58-2944-4CB4-9A17-4BBF30C1AD48}"
 EndProject
 Global
@@ -24,10 +22,6 @@ Global
 		{497B6271-312E-4CFE-92B7-9BAE8F6F3AC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{497B6271-312E-4CFE-92B7-9BAE8F6F3AC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{497B6271-312E-4CFE-92B7-9BAE8F6F3AC7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{797FC63F-A338-41E0-BE33-F985F10BD71C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{797FC63F-A338-41E0-BE33-F985F10BD71C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{797FC63F-A338-41E0-BE33-F985F10BD71C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{797FC63F-A338-41E0-BE33-F985F10BD71C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{18067C58-2944-4CB4-9A17-4BBF30C1AD48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{18067C58-2944-4CB4-9A17-4BBF30C1AD48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18067C58-2944-4CB4-9A17-4BBF30C1AD48}.Release|Any CPU.ActiveCfg = Release|Any CPU

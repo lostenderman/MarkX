@@ -1,4 +1,4 @@
-namespace MarkXConsoleUI
+namespace MarkX.ConsoleUI
 {
 	public static class Settings
 	{

@@ -1,6 +1,6 @@
-using MarkXLibrary;
+using MarkX.Core;
 
-namespace MarkXConsoleUI
+namespace MarkX.ConsoleUI
 {
 	public static class InfoWriter
 	{
@@ -51,12 +51,12 @@ namespace MarkXConsoleUI
 
 		private static void AddOpening()
 		{
-			output.Add("## RESULTS\n");
+			output.Add("# Results\n");
 		}
 
 		private static void AddInvalidFiles(List<SectionFile> inputFiles)
 		{
-			output.Add("## INVALID FILES\n");
+			output.Add("## Invalid files\n");
 			foreach (var inputFile in inputFiles) // TODO
 			{
 				if (inputFile.FileType != FileType.Invalid)
@@ -70,7 +70,7 @@ namespace MarkXConsoleUI
 
 		private static void AddInvalidXMLs(List<SectionFile> inputFiles)
 		{
-			output.Add("## INVALID XMLS\n");
+			output.Add("## Invalid xmls\n");
 			foreach (var inputFile in inputFiles) // TODO
 			{
 				if (inputFile.FileType == FileType.Invalid || inputFile.AllTestsAreValid)
@@ -115,15 +115,15 @@ namespace MarkXConsoleUI
 
 		private static void AddResult(CheckOptions options, List<SectionFile> inputFiles)
 		{
-			output.Add("## FAILING TESTS\n");
+			output.Add("## Failing tests\n");
 
 			var testIndent = "        ";
 			if (!options.GroupSections)
 			{
 				testIndent = "    ";
 			}
-			var testIndex = 0;
-			foreach (var inputFile in inputFiles) // TODO
+
+            foreach (var inputFile in inputFiles) // TODO
 			{
 				if (inputFile.AllValidTestsPass)
 				{
@@ -131,8 +131,8 @@ namespace MarkXConsoleUI
 				}
 
 				output.Add($"- {inputFile.FileInfo?.Name}\n");
-				testIndex = 0;
-				foreach (var section in inputFile.Sections)
+                int testIndex = 0;
+                foreach (var section in inputFile.Sections)
 				{
 					if (section.AllValidTestsPass)
 					{
@@ -192,7 +192,7 @@ namespace MarkXConsoleUI
 
 		private static void AddTestGeneratedResult(List<String> lines, Test test)
 		{
-			lines.Add($"GENERATED\n");
+			lines.Add($"Generated\n");
 			lines.Add($"```");
 			if (test.Output != null)
 			{
@@ -204,7 +204,7 @@ namespace MarkXConsoleUI
 		private static void AddTestExpectedResult(List<String> lines, Test test)
 		{
 
-			lines.Add($"EXPECTED\n");
+			lines.Add($"Expected\n");
 			lines.Add($"```");
 			if (test.Expected != null)
 			{
@@ -215,20 +215,20 @@ namespace MarkXConsoleUI
 
 		private static void AddTestExample(List<String> lines, Test test)
 		{
-			lines.Add($"EXAMPLE\n");
+			lines.Add($"Example\n");
 			lines.Add($"{test.Example}\n");
 		}
 
 		private static void AddTestNote(List<String> lines, Test test)
 		{
-			lines.Add($"NOTE\n");
+			lines.Add($"Note\n");
 			lines.Add($"{test.Note ?? ""}\n");
 		}
 
 		private static void AddTestIndex(List<String> lines, int index)
 		{
-			lines.Add($"INDEX\n");
-			lines.Add($"{index.ToString()}\n");
+			lines.Add($"Index\n");
+			lines.Add($"{index}\n");
 		}
 
 		private static string IndentLines(IEnumerable<string> lines, string indent)
@@ -252,7 +252,7 @@ namespace MarkXConsoleUI
 			var included = tests.Count(x => x.IsValid);
 			var skipped = tests.Count(x => !x.IsValid);
 
-			output.Add("## SUMMARY");
+			output.Add("## Summary");
 			output.Add("");
 			output.Add($"Total - {all}  ");
 			if (checking)

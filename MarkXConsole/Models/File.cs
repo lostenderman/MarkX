@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MarkXLibrary
+namespace MarkX.Core
 {
 	public class SectionFile
 	{

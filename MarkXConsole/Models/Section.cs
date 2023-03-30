@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 
-namespace MarkXLibrary
+namespace MarkX.Core
 {
 	public class Section
 	{

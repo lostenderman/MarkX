@@ -1,6 +1,6 @@
 using System.Xml.Linq;
 
-namespace MarkXLibrary
+namespace MarkX.Core
 {
 	public static class XMLParser
 	{
@@ -285,13 +285,13 @@ namespace MarkXLibrary
 		{
 			foreach (var child in elementChildren)
 			{
-				var parsedChild = Parse(child, childInheritance);
-				if (parsedChild.lines != null)
+				var (lines, resetSeparation) = Parse(child, childInheritance);
+				if (lines != null)
 				{
-					sub.AddRange(parsedChild.lines);
+					sub.AddRange(lines);
 				}
 				childInheritance.Separate = true;
-				if (parsedChild.resetSeparation)
+				if (resetSeparation)
 				{
 					childInheritance.Separate = false;
 				}

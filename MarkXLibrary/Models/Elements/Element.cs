@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MarkXLibrary
+namespace MarkX.Core
 {
 	public abstract class Element
 	{

@@ -1,9 +1,9 @@
-﻿using MarkXLibrary;
+﻿using MarkX.Core;
 using System.Text.Json;
 
-namespace MarkXConsoleUI
+namespace MarkX.ConsoleUI
 {
-	public static class FileLoader
+	public static class Reader
 	{
 		public static List<SectionFile>? LoadInputFiles(IEnumerable<string>? inputFilePaths, int inputDirectoryNestingLevel)
 		{

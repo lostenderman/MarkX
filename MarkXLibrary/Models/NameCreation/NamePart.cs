@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MarkXLibrary
+namespace MarkX.Core
 {
 	public class NamePart
 	{

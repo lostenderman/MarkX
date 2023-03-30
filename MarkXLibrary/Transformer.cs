@@ -1,41 +1,22 @@
-﻿using System.Reflection;
-using System.Security.Cryptography;
+﻿using MarkX.Core.Extensions;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
 
-namespace MarkXLibrary
+namespace MarkX.Core
 {
-	public class XsltExtension
-	{
-		public static string Hash(string text)
-		{
-			using (MD5 md5 = MD5.Create())
-			{
-				byte[] inputBytes = System.Text.Encoding.UTF8.GetBytes(text);
-				byte[] hashBytes = md5.ComputeHash(inputBytes);
-				return Convert.ToHexString(hashBytes).ToLower();
-			}
-		}
-
-		public static string UnescapeUri(string text)
-		{
-			return Uri.UnescapeDataString(text);
-		}
-	}
-
-	public static class Together
+	public static class Transformer
 	{
 		// TODO load from parameter from calling function?
-		private static string TransformPath { get; } = @"C:\Users\andre\source\repos\MarkX\MarkXLibrary\mapping.xslt";
+		private static string TransformPath { get; } = @"..\MarkXLibrary\mapping.xslt";
 		private static XslCompiledTransform Xslt { get; } = new XslCompiledTransform();
 
-		static Together()
+		static Transformer()
 		{
 			LoadTransformation();
 		}
 		public static void LoadTransformation()
-		{ 
+		{
 			if (TransformPath == null || !File.Exists(TransformPath))
 			{
 				return;
@@ -47,12 +28,12 @@ namespace MarkXLibrary
 				xsltInput = sr.ReadToEnd();
 			}
 
-            XsltSettings xsltSettings = new()
-            {
-                EnableScript = true
-            };
+			XsltSettings xsltSettings = new()
+			{
+				EnableScript = true
+			};
 
-            using (var srt = new StringReader(xsltInput))
+			using (var srt = new StringReader(xsltInput))
 			{
 				using (XmlReader xrt = XmlReader.Create(srt, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Ignore }))
 				{
@@ -90,7 +71,7 @@ namespace MarkXLibrary
 				else if (!markdownEndFound)
 				{
 					var startLines = line.Split(ResourceStrings.MarkdownInputEnd);
-					if (startLines.Count() == 2 && startLines.All(x => string.IsNullOrWhiteSpace(x)))
+					if (startLines.Length == 2 && startLines.All(x => string.IsNullOrWhiteSpace(x)))
 					{
 						markdownEndFound = true;
 						markdownInputEndLineIndex = index;
@@ -104,10 +85,42 @@ namespace MarkXLibrary
 
 		public static string? ChooseExpectedResult(string? own, string? provided, bool preferOwnResult)
 		{
-			return (own != null && provided != null) ? 
+			return (own != null && provided != null) ?
 				(preferOwnResult ? own : provided) : (own ?? provided);
 		}
+		
+		public static string? TransformXml(string xml, bool indentCode, IEnumerable<string> extensionList)
+		{
+			var output = "";
 
+			XsltExtension xsltExtension = new();
+			XsltArgumentList xsltArguments = new();
+			xsltArguments.AddExtensionObject("mark:ext", xsltExtension);
+			xsltArguments.AddParam("indented-code", "", indentCode);
+			xsltArguments.AddParam("extensions", "", string.Join(" ", extensionList));
+
+			using (StringReader stringReader = new(xml))
+			{
+				using (XmlTextReader xmlReader = new(stringReader))
+				{
+					xmlReader.XmlResolver = null;
+					using (StringWriter stringWriter = new())
+					{
+						using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, Xslt.OutputSettings))
+						{
+							Xslt.Transform(xmlReader, xsltArguments, xmlWriter);
+							output = stringWriter.ToString();
+						}
+					}
+				}
+			}
+
+			return output.ReplaceLineEndings("\n");
+		}
+
+
+
+		// OLD
 		public static string? ParseXml(string xml)
 		{
 			string? result = null;
@@ -146,36 +159,6 @@ namespace MarkXLibrary
 			{
 				codeBlockElement.IsEnabled = false;
 			}
-		}
-
-		// EXP
-		public static string? TransformXml(string xml, bool indentCode, IEnumerable<string> extensionList)
-		{
-			var output = "";
-
-			XsltExtension xsltExtension = new();
-			XsltArgumentList xsltArguments = new();
-			xsltArguments.AddExtensionObject("mark:ext", xsltExtension);
-			xsltArguments.AddParam("indented-code", "", indentCode);
-			xsltArguments.AddParam("extensions", "", string.Join(" ", extensionList));
-
-			using (StringReader stringReader = new(xml))
-			{
-				using (XmlTextReader xmlReader = new(stringReader))
-				{
-					xmlReader.XmlResolver = null;
-					using (StringWriter stringWriter = new())
-					{
-						using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, Xslt.OutputSettings))
-						{
-							Xslt.Transform(xmlReader, xsltArguments, xmlWriter);
-							output = stringWriter.ToString();
-						}
-					}
-				}
-			}
-
-			return output.ReplaceLineEndings("\n");
 		}
 	}
 }

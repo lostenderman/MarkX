@@ -1,4 +1,4 @@
-namespace MarkXLibrary
+namespace MarkX.Core
 {
 	// TODO make non-static -> current mapping at least
 	public static class Mapping

@@ -42,13 +42,13 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			<xsl:choose>
 				<xsl:when test="$first-extension = ''">
 					<xsl:if test="$current-extensions = $extension-name">
-						<xsl:value-of select="'true()'" />
+						<xsl:value-of select="'true'" />
 					</xsl:if>
 				</xsl:when>
 				<xsl:otherwise>
 					<xsl:choose>
 						<xsl:when test="$first-extension = $extension-name">
-							<xsl:value-of select="'true()'" />
+							<xsl:value-of select="'true'" />
 						</xsl:when>
 						<xsl:otherwise>
 							<xsl:call-template name="is-extension-enabled">
@@ -380,20 +380,18 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<!-- INLINE -->
 
 	<xsl:template match="cm:heading">
-		<xsl:variable name="heading-name">
-			<xsl:text>heading</xsl:text>
-			<xsl:choose>
-				<xsl:when test="@level = 1">One</xsl:when>
-				<xsl:when test="@level = 2">Two</xsl:when>
-				<xsl:when test="@level = 3">Three</xsl:when>
-				<xsl:when test="@level = 4">Four</xsl:when>
-				<xsl:when test="@level = 5">Five</xsl:when>
-				<xsl:when test="@level = 6">Six</xsl:when>
-			</xsl:choose>
-		</xsl:variable>
-
 		<xsl:call-template name="general-inline">
-			<xsl:with-param name="name" select="$heading-name"/>
+			<xsl:with-param name="name">
+				<xsl:text>heading</xsl:text>
+				<xsl:choose>
+					<xsl:when test="@level = 1">One</xsl:when>
+					<xsl:when test="@level = 2">Two</xsl:when>
+					<xsl:when test="@level = 3">Three</xsl:when>
+					<xsl:when test="@level = 4">Four</xsl:when>
+					<xsl:when test="@level = 5">Five</xsl:when>
+					<xsl:when test="@level = 6">Six</xsl:when>
+				</xsl:choose>
+			</xsl:with-param>
 			<xsl:with-param name="content">
 				<xsl:call-template name="inline"/>
 			</xsl:with-param>
@@ -740,7 +738,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			</xsl:call-template>
 		</xsl:variable>
 		
-		<xsl:if test="$is-enabled = 'true()'">
+		<xsl:if test="$is-enabled = 'true'">
 			<xsl:call-template name="general-block">
 				<xsl:with-param name="name" select="'lineBlock'"/>
 				<xsl:with-param name="content">

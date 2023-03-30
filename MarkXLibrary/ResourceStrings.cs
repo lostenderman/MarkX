@@ -1,4 +1,4 @@
-﻿namespace MarkXLibrary
+﻿namespace MarkX.Core
 {
 	public static class ResourceStrings
 	{
