@@ -538,32 +538,14 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<xsl:template match="cm:html_block">
-		<xsl:variable name="comment-content">
-			<xsl:call-template name="check-html-comment">
-				<xsl:with-param name="content" select="."/>
-			</xsl:call-template>
-		</xsl:variable>
-
-		<xsl:choose>
-			<!-- SUBJECT TO CHANGE -->
-			<xsl:when test="not($comment-content = '--')">
-				<xsl:text>blockHtmlCommentBegin</xsl:text>
-				<xsl:text>&#10;</xsl:text>
-				<xsl:call-template name="blocks"/>
-				<xsl:text>blockHtmlCommentEnd</xsl:text>
-				<xsl:text>&#10;</xsl:text>
-			</xsl:when>
-			<xsl:otherwise>
-				<xsl:call-template name="general-inline">
-					<xsl:with-param name="name" select="'inputBlockHtmlElement'"/>
-					<xsl:with-param name="content">
-						<xsl:call-template name="enclose-hash">
-							<xsl:with-param name="hashed-content" select="ext:Hash(.)"/>
-						</xsl:call-template>
-					</xsl:with-param>
+		<xsl:call-template name="general-inline">
+			<xsl:with-param name="name" select="'inputBlockHtmlElement'"/>
+			<xsl:with-param name="content">
+				<xsl:call-template name="enclose-hash">
+					<xsl:with-param name="hashed-content" select="ext:Hash(.)"/>
 				</xsl:call-template>
-			</xsl:otherwise>
-		</xsl:choose>
+			</xsl:with-param>
+		</xsl:call-template>
 	</xsl:template>
 
 	<xsl:template match="cm:html_inline">		
