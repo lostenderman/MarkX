@@ -176,6 +176,29 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:copy-of select="$block-position-end"/>
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
+	
+	<xsl:template name="custom-block">
+		<xsl:param name="name"/>
+		<xsl:param name="start-name-suffix"/>
+		<xsl:param name="end-name-suffix"/>
+		<xsl:param name="exclude-start"/>
+		<xsl:param name="exclude-end"/>
+		<xsl:param name="content"/>
+
+		<xsl:value-of select="$name"/>
+		<xsl:if test="not($exclude-start = 'true')">
+			<xsl:copy-of select="$block-position-start"/>
+		</xsl:if>
+		<xsl:value-of select="$start-name-suffix"/>
+		<xsl:text>&#10;</xsl:text>
+		<xsl:value-of select="$content"/>
+		<xsl:value-of select="$name"/>
+		<xsl:if test="not($exclude-end = 'true')">
+			<xsl:copy-of select="$block-position-end"/>
+		</xsl:if>
+		<xsl:value-of select="$end-name-suffix"/>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
 
 	<xsl:template name="general-inline">
 		<xsl:param name="name"/>
@@ -290,46 +313,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
-	<xsl:template name="list-content">
-		<xsl:param name="list-type"/>
-
-		<xsl:variable name="tight" select="'Tight'"/>
-
-		<xsl:copy-of select="$list-type"/>
-		<xsl:copy-of select="$block-position-start"/>
-		<xsl:if test="@tight = 'true'">
-			<xsl:copy-of select="$tight"/>
-		</xsl:if>
-		<xsl:text>&#10;</xsl:text>
-
-		<xsl:for-each select="cm:item">
-			<xsl:choose>
-				<xsl:when test="../@type = 'bullet'">
-					<xsl:text>ul</xsl:text>
-					<xsl:text>Item</xsl:text>
-					<xsl:text>&#10;</xsl:text>
-					<xsl:call-template name="blocks"/>
-					<xsl:text>ul</xsl:text>
-					<xsl:text>Item</xsl:text>
-					<xsl:text>End</xsl:text>
-				</xsl:when>
-				<xsl:when test="../@type = 'ordered'">
-					<xsl:text>ol</xsl:text><xsl:text>Item</xsl:text><xsl:text>WithNumber</xsl:text>: <xsl:value-of select="../@start + position() - 1"/>
-					<xsl:text>&#10;</xsl:text>
-					<xsl:call-template name="blocks"/>
-					<xsl:text>ol</xsl:text><xsl:text>Item</xsl:text><xsl:text>End</xsl:text>
-				</xsl:when>
-			</xsl:choose>
-			<xsl:text>&#10;</xsl:text>
-		</xsl:for-each>
-
-		<xsl:copy-of select="$list-type"/>
-		<xsl:copy-of select="$block-position-end"/>
-		<xsl:if test="@tight = 'true'">
-			<xsl:copy-of select="$tight"/>
-		</xsl:if>
-	</xsl:template>
-
 	<xsl:template match="cm:block_quote">
 		<xsl:call-template name="general-block">
 			<xsl:with-param name="name" select="'blockQuote'"/>
@@ -340,41 +323,58 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<xsl:template match="cm:list">	
-		<xsl:choose>
-			<xsl:when test="@type = 'bullet'">
-				<xsl:call-template name="list-content">
-					<xsl:with-param name="list-type" select="'ul'" />
-				</xsl:call-template>
-			</xsl:when>
-			<xsl:when test="@type = 'ordered'">
-				<xsl:call-template name="list-content">
-					<xsl:with-param name="list-type" select="'ol'" />
-				</xsl:call-template>
-			</xsl:when>
-		</xsl:choose>
-		<xsl:text>&#10;</xsl:text>
+		<xsl:call-template name="custom-block">
+			<xsl:with-param name="name">
+				<xsl:choose>
+					<xsl:when test="@type = 'bullet'">
+						<xsl:text>ul</xsl:text>
+					</xsl:when>
+					<xsl:when test="@type = 'ordered'">
+						<xsl:text>ol</xsl:text>
+					</xsl:when>
+				</xsl:choose>
+			</xsl:with-param>
+			<xsl:with-param name="start-name-suffix">
+				<xsl:if test="@tight = 'true'">
+					<xsl:text>Tight</xsl:text>
+				</xsl:if>
+			</xsl:with-param>
+			<xsl:with-param name="end-name-suffix">
+				<xsl:if test="@tight = 'true'">
+					<xsl:text>Tight</xsl:text>
+				</xsl:if>
+			</xsl:with-param>
+			<xsl:with-param name="content">
+				<xsl:apply-templates select="cm:*"/>
+			</xsl:with-param>
+		</xsl:call-template>
 	</xsl:template>
 
-	<!-- TODO SIMPLIFY -> REMOVE? -->
 	<xsl:template match="cm:item">
 		<xsl:choose>
 			<xsl:when test="../@type = 'bullet'">
-				<xsl:text>ul</xsl:text>
-				<xsl:text>Item</xsl:text>
-				<xsl:text>&#10;</xsl:text>
-				<xsl:call-template name="blocks"/>
-				<xsl:text>ul</xsl:text>
-				<xsl:text>Item</xsl:text>
-				<xsl:text>End</xsl:text>
+				<xsl:call-template name="custom-block">
+					<xsl:with-param name="name" select="'ulItem'"/>
+					<xsl:with-param name="exclude-start" select="'true'"/>
+					<xsl:with-param name="content">
+						<xsl:call-template name="blocks"/>
+					</xsl:with-param>
+				</xsl:call-template>
 			</xsl:when>
 			<xsl:when test="../@type = 'ordered'">
-				<xsl:text>ol</xsl:text><xsl:text>Item</xsl:text><xsl:text>WithNumber</xsl:text>: <xsl:value-of select="position()"/>
-				<xsl:text>&#10;</xsl:text>
-				<xsl:call-template name="blocks"/>
-				<xsl:text>ol</xsl:text><xsl:text>Item</xsl:text><xsl:text>End</xsl:text>
+				<xsl:call-template name="custom-block">
+					<xsl:with-param name="name" select="'olItem'"/>
+					<xsl:with-param name="start-name-suffix">
+						<xsl:text>WithNumber: </xsl:text>
+						<xsl:value-of select="../@start + position() - 1"/>
+					</xsl:with-param>
+					<xsl:with-param name="exclude-start" select="'true'"/>
+					<xsl:with-param name="content">
+						<xsl:call-template name="blocks"/>
+					</xsl:with-param>
+				</xsl:call-template>
 			</xsl:when>
 		</xsl:choose>
-		<xsl:text>&#10;</xsl:text>
 	</xsl:template>
 
 	<!-- INLINE -->
@@ -731,9 +731,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<!-- TODO 
-
-	Formatting - in progress
-	HtmlBlockComment
 
 	-->
 
