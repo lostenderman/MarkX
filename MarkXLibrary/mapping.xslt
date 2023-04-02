@@ -499,10 +499,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 				</xsl:call-template>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:copy-of select="$multiline-position-start"/>
-				<xsl:text>fencedCode</xsl:text>
-				<xsl:text>&#10;</xsl:text>
-
 				<xsl:call-template name="general-multiline">
 					<xsl:with-param name="name" select="'fencedCode'"/>
 					<xsl:with-param name="content">
