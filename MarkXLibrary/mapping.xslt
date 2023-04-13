@@ -259,6 +259,9 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 					<xsl:when test="local-name() = 'softbreak'">
 						<xsl:call-template name="inline-softbreak"/>
 					</xsl:when>
+					<xsl:when test="local-name() = 'linebreak'">
+						<xsl:call-template name="inline-linebreak"/>
+					</xsl:when>
 					<xsl:otherwise>
 						<xsl:variable name="els">
 							<xsl:apply-templates select="." />
@@ -280,6 +283,54 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<xsl:template match="/">
 		<xsl:apply-templates select="cm:document"/>
 	</xsl:template>
+	
+	<!-- SECTIONS -->
+	<xsl:template name="open-section">
+		<xsl:param name="count"/>
+		<xsl:if test="$count > 0">
+			<xsl:text>BEGIN section</xsl:text>
+			<xsl:text>&#10;</xsl:text>
+			<xsl:call-template name="open-section">
+				<xsl:with-param name="count" select="$count - 1"/>
+			</xsl:call-template>
+		</xsl:if>
+	</xsl:template>
+	
+	<xsl:template name="open-sections">
+		<xsl:param name="previous"/>
+		<xsl:param name="current"/>
+		<xsl:call-template name="open-section">
+			<xsl:with-param name="count">
+				<xsl:choose>
+					<xsl:when test="$current > $previous">
+						<xsl:value-of select="$current - $previous"/>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="'1'"/>
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:with-param>
+		</xsl:call-template>
+	</xsl:template>
+
+	<xsl:template name="close-section">
+		<xsl:param name="count"/>
+		<xsl:if test="$count > 0">
+			<xsl:text>END section</xsl:text>
+			<xsl:text>&#10;</xsl:text>
+			<xsl:call-template name="close-section">
+				<xsl:with-param name="count" select="$count - 1"/>
+			</xsl:call-template>
+		</xsl:if>
+	</xsl:template>
+	
+	<xsl:template name="close-sections">
+		<xsl:param name="previous"/>
+		<xsl:param name="current"/>
+		<xsl:call-template name="close-section">
+			<xsl:with-param name="count" select="$previous - $current + 1"/>
+		</xsl:call-template>
+	</xsl:template>
 
 	<!-- BLOCKS -->
 
@@ -288,6 +339,9 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			<xsl:with-param name="name" select="'document'"/>
 			<xsl:with-param name="content">
 				<xsl:call-template name="blocks"/>
+				<xsl:call-template name="close-section">
+					<xsl:with-param name="count" select="(//cm:heading)[last()]/@level"/>
+				</xsl:call-template>
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
@@ -304,8 +358,10 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 
 	<xsl:template match="cm:linebreak">
-		<xsl:text>hardLineBreak</xsl:text>
-		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
+
+	<xsl:template name="inline-linebreak">
+		<xsl:text> </xsl:text>
 	</xsl:template>
 
 	<xsl:template match="cm:thematic_break">
@@ -380,6 +436,24 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<!-- INLINE -->
 
 	<xsl:template match="cm:heading">
+		<xsl:variable name="latest-heading" select="preceding::cm:heading[1]" />
+		<xsl:call-template name="close-sections">
+			<xsl:with-param name="previous" select="$latest-heading/@level"/>
+			<xsl:with-param name="current" select="@level"/>
+		</xsl:call-template>
+		<xsl:call-template name="open-sections">
+			<xsl:with-param name="previous">
+				<xsl:choose>
+					<xsl:when test="$latest-heading">
+						<xsl:value-of select="$latest-heading/@level"/>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="'0'"/>
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:with-param>
+			<xsl:with-param name="current" select="@level"/>
+		</xsl:call-template>
 		<xsl:call-template name="general-inline">
 			<xsl:with-param name="name">
 				<xsl:text>heading</xsl:text>
@@ -729,24 +803,5 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<!-- TODO 
 
 	-->
-
-	<!-- TODO CHANGES SINCE MARKX 1.0 - SECTIONS -->
-
-	<xsl:template match="cm:heading_with_sections">
-		<xsl:text>sectionBegin</xsl:text>
-		<xsl:text>&#10;</xsl:text>
-		<xsl:text>heading</xsl:text>
-		<xsl:choose>
-			<xsl:when test="@level = 1">One</xsl:when>
-			<xsl:when test="@level = 2">Two</xsl:when>
-			<xsl:when test="@level = 3">Three</xsl:when>
-			<xsl:when test="@level = 4">Four</xsl:when>
-			<xsl:when test="@level = 5">Five</xsl:when>
-			<xsl:when test="@level = 6">Six</xsl:when>
-		</xsl:choose>
-		<xsl:copy-of select="$inline-start"/>
-		<xsl:call-template name="inline"/>
-		<xsl:text>&#10;</xsl:text>
-	</xsl:template>
 
 </xsl:stylesheet>
