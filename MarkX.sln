@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5288594F-CE05-4FB0-A372-2471D5AF0125}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkXLibrary", "MarkXLibrary\MarkXLibrary.csproj", "{497B6271-312E-4CFE-92B7-9BAE8F6F3AC7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkXConsole", "MarkXConsole\MarkXConsole.csproj", "{18067C58-2944-4CB4-9A17-4BBF30C1AD48}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{497B6271-312E-4CFE-92B7-9BAE8F6F3AC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{497B6271-312E-4CFE-92B7-9BAE8F6F3AC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{497B6271-312E-4CFE-92B7-9BAE8F6F3AC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{497B6271-312E-4CFE-92B7-9BAE8F6F3AC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18067C58-2944-4CB4-9A17-4BBF30C1AD48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18067C58-2944-4CB4-9A17-4BBF30C1AD48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18067C58-2944-4CB4-9A17-4BBF30C1AD48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18067C58-2944-4CB4-9A17-4BBF30C1AD48}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {059DF0CD-F87D-42D0-8AE0-C4B6931DBC4D}
+	EndGlobalSection
+EndGlobal
