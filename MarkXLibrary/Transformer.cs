@@ -99,7 +99,7 @@ namespace MarkX.Core
 			xsltArguments.AddParam("indented-code", "", indentCode);
 			xsltArguments.AddParam("extensions", "", string.Join(" ", extensionList));
 
-			using (StringReader stringReader = new(xml))
+            using (StringReader stringReader = new(xml))
 			{
 				using (XmlTextReader xmlReader = new(stringReader))
 				{
@@ -114,11 +114,8 @@ namespace MarkX.Core
 					}
 				}
 			}
-
-			return output.ReplaceLineEndings("\n");
+            return output.ReplaceLineEndings("\n");
 		}
-
-
 
 		// OLD
 		public static string? ParseXml(string xml)

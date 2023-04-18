@@ -118,39 +118,7 @@ namespace MarkX.ConsoleUI.Runners
 							continue;
 						}
 
-						var parsed = Transformer.ParseXml(test.XML);
-						var parsed2 = Transformer.TransformXml(test.XML, options.IndentCode, options.Extensions);
-
-						var is_test = false;
-
-						if (!is_test)
-						{
-							parsed = parsed2;
-						}
-						//if (parsed == parsed2)
-						//                  {
-						//	Console.WriteLine("EQUAL");
-						//                  }
-
-						//                  foreach (char c in parsed)
-						//                  {
-						//                      Console.Write(System.Convert.ToInt32(c));
-						//                      Console.Write(" ");
-						//                  }
-
-						//                  Console.WriteLine("");
-
-						//                  foreach (char c in parsed2)
-						//                  {
-						//                      Console.Write(System.Convert.ToInt32(c));
-						//                      Console.Write(" ");
-						//                  }
-						if (is_test)
-						{
-							Console.WriteLine(parsed);
-							Console.WriteLine(parsed2);
-						}
-
+						var parsed = Transformer.TransformXml(test.XML, options.IndentCode, options.Extensions);
 						if (parsed == null)
 						{
 							if (inputFile.FileType == FileType.PossiblyXML)

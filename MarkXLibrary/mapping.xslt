@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
 xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
-	<xsl:output method="text" omit-xml-declaration="yes" encoding="UTF-8" indent="no"/>
+	<xsl:output omit-xml-declaration="yes" encoding="UTF-8" indent="no" method="text"/>
 
-	<xsl:param name="indented-code"></xsl:param>
-	<xsl:param name="extensions"></xsl:param>
+	<xsl:param name="indented-code"/>
+	<xsl:param name="extensions"/>
 
 	<xsl:variable name="block-separator" select="'interblockSeparator'"/>
 	<xsl:variable name="block-position-start" select="'Begin'"/>
@@ -285,6 +285,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	</xsl:template>
 	
 	<!-- SECTIONS -->
+
 	<xsl:template name="open-section">
 		<xsl:param name="count"/>
 		<xsl:if test="$count > 0">
@@ -741,6 +742,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 						<xsl:when test="$character = '|'">pipe</xsl:when>
 						<xsl:when test="$character = '~'">tilde</xsl:when>
 						<xsl:when test="$character = '&#160;'">nbsp</xsl:when>
+						<xsl:when test="$character = '&#xFFFD;'">replacementCharacter</xsl:when>
 						<xsl:when test="$inline = 'true'">
 							<xsl:value-of select="$character"/>
 						</xsl:when>
@@ -751,6 +753,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 						<xsl:when test="$character = '{'">leftBrace</xsl:when>
 						<xsl:when test="$character = '}'">rightBrace</xsl:when>
 						<xsl:when test="$character = '\'">backslash</xsl:when>
+						<xsl:when test="$character = '&#xFFFD;'">replacementCharacter</xsl:when>
 						<xsl:when test="$inline = 'true'">
 							<xsl:value-of select="$character"/>
 						</xsl:when>
