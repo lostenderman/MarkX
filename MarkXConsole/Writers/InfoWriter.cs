@@ -4,12 +4,11 @@ namespace MarkX.ConsoleUI
 {
 	public static class InfoWriter
 	{
-		private static List<string> output = new List<string>();
-		private static string IndentLevel0 { get; set; } = "";
+		private static List<string> output = new();
 		private static string IndentLevel1 { get; set; } = "    ";
 		private static string IndentLevel2 { get; set; } = "        ";
 
-		public static void PrintParsingResults(ParseOptions options, List<SectionFile>? inputFiles)
+		public static void PrintParsingResults(ParseOptions _, List<SectionFile>? inputFiles)
 		{
 			if (inputFiles == null)
 			{
@@ -57,7 +56,7 @@ namespace MarkX.ConsoleUI
 		private static void AddInvalidFiles(List<SectionFile> inputFiles)
 		{
 			output.Add("## Invalid files\n");
-			foreach (var inputFile in inputFiles) // TODO
+			foreach (var inputFile in inputFiles)
 			{
 				if (inputFile.FileType != FileType.Invalid)
 				{
@@ -71,7 +70,7 @@ namespace MarkX.ConsoleUI
 		private static void AddInvalidXMLs(List<SectionFile> inputFiles)
 		{
 			output.Add("## Invalid xmls\n");
-			foreach (var inputFile in inputFiles) // TODO
+			foreach (var inputFile in inputFiles)
 			{
 				if (inputFile.FileType == FileType.Invalid || inputFile.AllTestsAreValid)
 				{
@@ -117,13 +116,13 @@ namespace MarkX.ConsoleUI
 		{
 			output.Add("## Failing tests\n");
 
-			var testIndent = "        ";
+			var testIndent = IndentLevel2;
 			if (!options.GroupSections)
 			{
-				testIndent = "    ";
+				testIndent = IndentLevel1;
 			}
 
-            foreach (var inputFile in inputFiles) // TODO
+			foreach (var inputFile in inputFiles)
 			{
 				if (inputFile.AllValidTestsPass)
 				{
@@ -131,8 +130,8 @@ namespace MarkX.ConsoleUI
 				}
 
 				output.Add($"- {inputFile.FileInfo?.Name}\n");
-                int testIndex = 0;
-                foreach (var section in inputFile.Sections)
+				int testIndex = 0;
+				foreach (var section in inputFile.Sections)
 				{
 					if (section.AllValidTestsPass)
 					{
@@ -236,7 +235,7 @@ namespace MarkX.ConsoleUI
 			var joinedLines = string.Join("", lines.Select(x => indent + x + "\n"));
 			return joinedLines ?? "";
 		}
-
+		
 		private static void AddSummary(bool checking, List<SectionFile> inputFiles)
 		{
 			var tests = inputFiles

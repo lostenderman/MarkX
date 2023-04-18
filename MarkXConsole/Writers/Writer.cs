@@ -53,17 +53,15 @@ namespace MarkX.ConsoleUI
 
 		public static int ExportTest(ParseOptions options, Test test, string destination)
 		{
-			using (StreamWriter sw = new StreamWriter(destination))
+			using StreamWriter sw = new(destination);
+			if (test.Markdown != null && !options.ExcludeMarkdown)
 			{
-				if (test.Markdown != null && !options.ExcludeMarkdown)
-				{
-					sw.WriteLine(ResourceStrings.MarkdownInputStart);
-					sw.Write(test.Markdown);
-					sw.WriteLine(ResourceStrings.MarkdownInputEnd);
-				}
-
-				sw.Write(string.Join("\n", test.Output));
+				sw.WriteLine(ResourceStrings.MarkdownInputStart);
+				sw.Write(test.Markdown);
+				sw.WriteLine(ResourceStrings.MarkdownInputEnd);
 			}
+
+			sw.Write(string.Join("\n", test.Output));
 			return 0;
 		}
 
@@ -80,10 +78,8 @@ namespace MarkX.ConsoleUI
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
 			};
 			string? serialized = JsonSerializer.Serialize(sections, jsonOptions);
-			using (StreamWriter sw = new(options.Output))
-			{
-				sw.WriteLine(serialized);
-			}
+			using StreamWriter sw = new(options.Output);
+			sw.WriteLine(serialized);
 		}
 	}
 }

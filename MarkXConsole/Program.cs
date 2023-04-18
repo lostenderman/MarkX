@@ -14,7 +14,7 @@ namespace MarkX.ConsoleUI
 			return 0;
 		}
 
-		public static int ShowErrors(IEnumerable<Error> errors)
+		public static int ShowErrors(IEnumerable<Error> _)
 		{
 			return 0;
 		}

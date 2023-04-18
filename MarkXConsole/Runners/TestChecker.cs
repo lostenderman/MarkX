@@ -2,70 +2,63 @@
 
 namespace MarkX.ConsoleUI.Runners
 {
-    public static class TestChecker
-    {
-        public static void Run(CheckOptions options)
-        {
-            List<SectionFile>? inputFiles = Reader.LoadInputFiles(options.Input, Settings.InputDirectoryNestingLevel);
-            SectionFile? resultFile = Reader.LoadFile(options.Result, FileType.Unstructured);
+	public static class TestChecker
+	{
+		public static void Run(CheckOptions options)
+		{
+			List<SectionFile>? inputFiles = Reader.LoadInputFiles(options.Input, Settings.InputDirectoryNestingLevel);
+			SectionFile? resultFile = Reader.LoadFile(options.Result, FileType.Unstructured);
 
-            TestParser.NormalizeSectionNames(options, inputFiles);
+			TestParser.NormalizeSectionNames(options, inputFiles);
+			AssignExpectedResult(inputFiles, resultFile, options.OwnResult);
 
-            Mapping.ApplyExtensions(options.Extensions);
+			TestParser.TryParseTests(inputFiles, options);
+			CheckTests(inputFiles);
 
-            if (options.IndentCode)
-            {
-                Transformer.DisableElement("fenced_code_block");
-            }
-            AssignExpectedResult(inputFiles, resultFile, options.OwnResult);
+			if (!options.Quiet)
+			{
+				InfoWriter.PrintCheckingResults(options, inputFiles);
+			}
+		}
 
-            TestParser.TryParseTests(inputFiles, options);
-            CheckTests(inputFiles);
+		public static void AssignExpectedResult(List<SectionFile>? inputFiles, SectionFile? resultFile, bool preferOwnResult)
+		{
+			if (inputFiles == null || resultFile == null)
+			{
+				return;
+			}
+			var tests = inputFiles
+				.SelectMany(x => x.Sections)
+				.SelectMany(x => x.Tests);
 
-            if (!options.Quiet)
-            {
-                InfoWriter.PrintCheckingResults(options, inputFiles);
-            }
-        }
+			foreach (var test in tests)
+			{
+				test.Expected = Transformer.ChooseExpectedResult(test.Expected, resultFile.RawContent, preferOwnResult);
+			}
+		}
 
-        public static void AssignExpectedResult(List<SectionFile>? inputFiles, SectionFile? resultFile, bool preferOwnResult)
-        {
-            if (inputFiles == null || resultFile == null)
-            {
-                return;
-            }
-            var tests = inputFiles
-                .SelectMany(x => x.Sections)
-                .SelectMany(x => x.Tests);
+		public static void CheckTests(List<SectionFile>? inputFiles)
+		{
+			if (inputFiles == null)
+			{
+				return;
+			}
+			foreach (var inputFile in inputFiles)
+			{
+				foreach (var section in inputFile.Sections)
+				{
+					foreach (var test in section.Tests)
+					{
+						test.IsPassing = Transformer.CompareResults(test.Output, test.Expected);
+					}
 
-            foreach (var test in tests)
-            {
-                test.Expected = Transformer.ChooseExpectedResult(test.Expected, resultFile.RawContent, preferOwnResult);
-            }
-        }
+					section.UpdatePassingStatus();
+					section.UpdateValidityStatus();
+				}
 
-        public static void CheckTests(List<SectionFile>? inputFiles)
-        {
-            if (inputFiles == null)
-            {
-                return;
-            }
-            foreach (var inputFile in inputFiles)
-            {
-                foreach (var section in inputFile.Sections)
-                {
-                    foreach (var test in section.Tests)
-                    {
-                        test.IsPassing = Transformer.CompareResults(test.Output, test.Expected);
-                    }
-
-                    section.UpdatePassingStatus();
-                    section.UpdateValidityStatus();
-                }
-
-                inputFile.UpdatePassingStatus();
-                inputFile.UpdateValidityStatus();
-            }
-        }
-    }
+				inputFile.UpdatePassingStatus();
+				inputFile.UpdateValidityStatus();
+			}
+		}
+	}
 }

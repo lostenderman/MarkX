@@ -237,7 +237,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 	<!-- RUNNERS -->
 
 	<xsl:template name="blocks">
-		<xsl:for-each select="cm:paragraph|cm:list|cm:html_block|cm:block_quote|cm:thematic_break|cm:code_block|cm:heading">
+		<xsl:for-each select="cm:paragraph|cm:list|cm:html_block|cm:block_quote|cm:thematic_break|cm:code_block|cm:heading|cm:line_block">
 			<xsl:apply-templates select="."></xsl:apply-templates>
 			<xsl:if test="position() != last()">
 				<xsl:copy-of select="$block-separator"/>
@@ -782,7 +782,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
 	<!-- EXTENSIONS -->
 
-	<!-- TODO SPECIFY AS BLOCK, ADD TO BLOCKS -->
 	<xsl:template match="cm:line_block">
 		<xsl:variable name="is-enabled">
 			<xsl:call-template name="is-extension-enabled">
@@ -802,9 +801,5 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 			</xsl:call-template>
 		</xsl:if>
 	</xsl:template>
-
-	<!-- TODO 
-
-	-->
 
 </xsl:stylesheet>

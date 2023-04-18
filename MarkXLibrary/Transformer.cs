@@ -1,13 +1,11 @@
 ﻿using MarkX.Core.Extensions;
 using System.Xml;
-using System.Xml.Linq;
 using System.Xml.Xsl;
 
 namespace MarkX.Core
 {
 	public static class Transformer
 	{
-		// TODO load from parameter from calling function?
 		private static string TransformPath { get; } = @"..\MarkXLibrary\mapping.xslt";
 		private static XslCompiledTransform Xslt { get; } = new XslCompiledTransform();
 
@@ -33,15 +31,11 @@ namespace MarkX.Core
 				EnableScript = true
 			};
 
-			using (var srt = new StringReader(xsltInput))
-			{
-				using (XmlReader xrt = XmlReader.Create(srt, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Ignore }))
-				{
-					Xslt.Load(xrt, xsltSettings, new XmlUrlResolver());
-				}
-			}
+			using var srt = new StringReader(xsltInput);
+			using XmlReader xrt = XmlReader.Create(srt, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Ignore });
+			Xslt.Load(xrt, xsltSettings, new XmlUrlResolver());
 		}
-		// TODO classes
+
 		public static bool CompareResults(string? generated, string? expected)
 		{
 			if (generated == null || expected == null)
@@ -80,7 +74,7 @@ namespace MarkX.Core
 				index++;
 			}
 			var testResult = string.Join('\n', expectedLines, markdownInputEndLineIndex + 1, expectedLines.Length - markdownInputEndLineIndex - 1);
-			return generated == testResult || generated.Contains("inputVerbatim") || generated.Contains("fencedCode");
+			return generated == testResult;
 		}
 
 		public static string? ChooseExpectedResult(string? own, string? provided, bool preferOwnResult)
@@ -99,63 +93,16 @@ namespace MarkX.Core
 			xsltArguments.AddParam("indented-code", "", indentCode);
 			xsltArguments.AddParam("extensions", "", string.Join(" ", extensionList));
 
-            using (StringReader stringReader = new(xml))
+			using (StringReader stringReader = new(xml))
 			{
-				using (XmlTextReader xmlReader = new(stringReader))
-				{
-					xmlReader.XmlResolver = null;
-					using (StringWriter stringWriter = new())
-					{
-						using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, Xslt.OutputSettings))
-						{
-							Xslt.Transform(xmlReader, xsltArguments, xmlWriter);
-							output = stringWriter.ToString();
-						}
-					}
-				}
+				using XmlTextReader xmlReader = new(stringReader);
+				xmlReader.XmlResolver = null;
+				using StringWriter stringWriter = new();
+				using XmlWriter xmlWriter = XmlWriter.Create(stringWriter, Xslt.OutputSettings);
+				Xslt.Transform(xmlReader, xsltArguments, xmlWriter);
+				output = stringWriter.ToString();
 			}
-            return output.ReplaceLineEndings("\n");
-		}
-
-		// OLD
-		public static string? ParseXml(string xml)
-		{
-			string? result = null;
-			XElement? root;
-			try
-			{
-				root = XElement.Parse(xml, LoadOptions.PreserveWhitespace);
-			}
-			catch (Exception)
-			{
-				return result;
-			}
-
-			if (root != null)
-			{
-				var parentInheritance = new InheritanceData()
-				{
-					IncludeText = false,
-					Separate = false,
-					Parenthesise = false,
-				};
-				var (lines, _) = XMLParser.Parse(root, parentInheritance);
-				if (lines != null)
-				{
-					result = string.Join("\n", lines);
-					result += "\n";
-				}
-			}
-			return result;
-		}
-
-		public static void DisableElement(string name)
-		{
-			var codeBlockElement = Mapping.DefaultMappingSpecification?.GetMappingDefinitionById(name);
-			if (codeBlockElement != null)
-			{
-				codeBlockElement.IsEnabled = false;
-			}
+			return output.ReplaceLineEndings("\n");
 		}
 	}
 }

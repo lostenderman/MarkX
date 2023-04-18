@@ -2,20 +2,13 @@
 
 namespace MarkX.ConsoleUI.Runners
 {
-    public static class TestParser
-    {
+	public static class TestParser
+	{
 		public static void Run(ParseOptions options)
 		{
 			List<SectionFile>? inputFiles = Reader.LoadInputFiles(options.Input, Settings.InputDirectoryNestingLevel);
 
 			NormalizeSectionNames(options, inputFiles);
-
-			Mapping.ApplyExtensions(options.Extensions);
-
-			if (options.IndentCode)
-			{
-				Transformer.DisableElement("fenced_code_block");
-			}
 			TryParseTests(inputFiles, options);
 
 			if (!options.Quiet)
@@ -118,7 +111,7 @@ namespace MarkX.ConsoleUI.Runners
 							continue;
 						}
 
-						var parsed = Transformer.TransformXml(test.XML, options.IndentCode, options.Extensions);
+						var parsed = Transformer.TransformXml(test.XML, options?.IndentCode ?? false, options?.Extensions ?? new List<string>());
 						if (parsed == null)
 						{
 							if (inputFile.FileType == FileType.PossiblyXML)

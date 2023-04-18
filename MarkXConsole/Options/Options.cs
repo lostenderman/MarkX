@@ -7,11 +7,9 @@ namespace MarkX.ConsoleUI
 		[Option('g', "group-sections", Required = false, HelpText = "Group tests to sections in the output.")]
 		public bool GroupSections { get; set; }
 
-		// LIB TOO
 		[Option('c', "code-indented", Required = false, HelpText = "Render the default code element as indented code, rather than fenced code")]
 		public bool IndentCode { get; set; }
 
-		// LIB TOO
 		[Option('e', "extensions", Required = false, HelpText = "Add custom extensions.")]
 		public IEnumerable<string>? Extensions { get; set; }
 
