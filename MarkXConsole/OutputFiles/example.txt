@@ -1,0 +1,6 @@
+<<<
+*This is an example input*
+>>>
+documentBegin
+emphasis: This is an example input
+documentEnd
