@@ -1,5 +1,7 @@
 ﻿using CommandLine;
+using CommandLine.Text;
 using MarkX.ConsoleUI.Runners;
+using MarkX.CommandParser;
 
 namespace MarkX.ConsoleUI
 {
@@ -7,16 +9,23 @@ namespace MarkX.ConsoleUI
 	{
 		static int Main(string[] args)
 		{
-			Parser.Default.ParseArguments<ParseOptions, CheckOptions>(args)
+			var parser = new Parser(with => with.HelpWriter = null);
+			var parserResult = parser.ParseArguments<ParseOptions, CheckOptions>(args);
+			parserResult
 				.WithParsed<ParseOptions>(options => TestParser.Run(options))
 				.WithParsed<CheckOptions>(options => TestChecker.Run(options))
-				.WithNotParsed(errors => ShowErrors(errors));
+				.WithNotParsed(errs => DisplayHelp(parserResult));
 			return 0;
 		}
 
-		public static int ShowErrors(IEnumerable<Error> _)
+		static int DisplayHelp(ParserResult<object> parserResult)
 		{
-			return 0;
+			Console.WriteLine(HelpText.AutoBuild(parserResult, h => {
+				h.Heading = "MarkX 1.0.0";
+				h.OptionComparison = Comparator.RequiredThenAlphaShortComparison;
+				return h;
+			}));
+			return 1;
 		}
 	}
 }
