@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace MarkX.Core
@@ -17,12 +15,12 @@ namespace MarkX.Core
 
 		public void UpdatePassingStatus()
 		{
-			this.AllValidTestsPass = this.Tests.All(x => !x.IsValid || x.IsPassing);
+			AllValidTestsPass = Tests.All(x => !x.IsValid || x.IsPassing);
 		}
 
 		public void UpdateValidityStatus()
 		{
-			this.AllTestsAreValid = this.Tests.All(x => x.IsValid == true);
+			AllTestsAreValid = Tests.All(x => x.IsValid == true);
 		}
 	}
 }

@@ -111,8 +111,16 @@ namespace MarkX.ConsoleUI.Runners
 							continue;
 						}
 
-						var parsed = Transformer.TransformXml(test.XML, options?.IndentCode ?? false, options?.Extensions ?? new List<string>());
-						if (parsed == null)
+						string? parsed = null;
+						try
+						{
+							parsed = Transformer.TransformXml(test.XML, options?.IndentCode ?? false, options?.Extensions ?? new List<string>());
+							if (inputFile.FileType == FileType.PossiblyXML)
+							{
+								inputFile.FileType = FileType.XML;
+							}
+							test.IsValid = true;
+						} catch (System.Xml.XmlException)
 						{
 							if (inputFile.FileType == FileType.PossiblyXML)
 							{
@@ -120,17 +128,23 @@ namespace MarkX.ConsoleUI.Runners
 							}
 							test.IsValid = false;
 						}
-						else
+
+						if (parsed == null)
 						{
 							if (inputFile.FileType == FileType.PossiblyXML)
 							{
-								inputFile.FileType = FileType.XML;
+								inputFile.FileType = FileType.Invalid;
 							}
-							test.IsValid = true;
+							continue;
 						}
+						
 						test.Output = parsed;
 					}
+					section.UpdatePassingStatus();
+					section.UpdateValidityStatus();
 				}
+				inputFile.UpdatePassingStatus();
+				inputFile.UpdateValidityStatus();
 			}
 		}
 

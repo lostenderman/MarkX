@@ -17,17 +17,17 @@ namespace MarkX.Core
 
 		public void UpdatePassingStatus()
 		{
-			this.AllValidTestsPass = this.Sections.All(x => x.AllValidTestsPass == true);
+			AllValidTestsPass = Sections.All(x => x.AllValidTestsPass == true);
 		}
 
 		public void UpdateValidityStatus()
 		{
-			this.AllTestsAreValid = this.Sections.All(x => x.AllTestsAreValid == true);
+			AllTestsAreValid = Sections.All(x => x.AllTestsAreValid == true);
 		}
 
 		public bool IsEmpty()
 		{
-			return this.RawContent == null || this.RawContent == "";
+			return RawContent == null || RawContent == "";
 		}
 	}
 }

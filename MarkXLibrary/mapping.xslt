@@ -100,8 +100,6 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 		"/>
 	</xsl:template>
 
-	<!-- SPECIAL HELPERS -->
-
 	<xsl:template name="process-text">
 		<xsl:param name="text"/>
 		<xsl:param name="inline"/>
