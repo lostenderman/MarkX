@@ -38,27 +38,27 @@ MarkX defines the following verbs and their options.
 #### `parse` 
 Parses input files and into an output file (JSON by default).
 
-- `-I, --input`: defines Input files and directories with top-level Input files for parsing
+- `-I, --input`: defines input files and directories with top-level input files for parsing
 
-- `-O, --output`: defines an output file or a directory name with the option `-t` enabled.
-- `-t, --tree`: parses the tests into a directory tree.
-- `-f, --file`: writes the result of parsing into a text file if the input is a single valid test.
-- `-e, --extensions`: enables listed extensions.
-- `-g, --group-sections`: groups tests into sections based on the name of the section to which they belong.
-- `-c, --code-indented`: overwrites the default rendering of the `code_block` to an indented code, as opposed to a fenced code.
-- `-i, --isolate-sections`: prevents identically named sections in different files from being merged.
-- `-m, --exclude-markdown`: removes the Markdown input (if provided) from the generated result.
+- `-O, --output`: defines an output file or a directory name with the option `-t` enabled
+- `-t, --tree`: parses the tests into a directory tree
+- `-f, --file`: writes the result of parsing into a text file if the input is a single valid test
+- `-e, --extensions`: enables listed extensions
+- `-g, --group-sections`: groups tests into sections based on the name of the section to which they belong
+- `-c, --code-indented`: overwrites the default rendering of the `code_block` from fenced code to an indented code
+- `-i, --isolate-sections`: prevents identically named sections in different files from being merged
+- `-m, --exclude-markdown`: excludes the Markdown input from the generated result
 
 #### `check`
 Checks input files against a provided result file.
 
-- `-I, --input`: defines input files and directories top-level files for parsing.
+- `-I, --input`: defines input files and directories with top-level input files for parsing
 
-- `-R, --result`: specifies a file with a test result with which the tests are checked against.
-- `-e, --extensions`: enables listed extensions.
-- `-g, --group-sections`: groups tests into sections based on the name of the section to which they belong.
-- `-c, --code-indented`: overwrites the default rendering of the `code_block` to an indented code, as opposed to a fenced code.
-- `-r, --own-result`: makes the tests prioritise their expected result over the single provided one.
+- `-R, --result`: specifies a file with a test result with which the tests are checked against
+- `-e, --extensions`: enables listed extensions
+- `-g, --group-sections`: groups tests into sections based on the name of the section to which they belong
+- `-c, --code-indented`: overwrites the default rendering of the `code_block` from fenced code to an indented code
+- `-r, --own-result`: makes the tests prioritise their expected result over the single provided one
 
 Alternatively, the option `help` can be used to display information about MarkX or any of the verbs.
 
@@ -88,12 +88,12 @@ The MarkX input consists of one or more Input files or directories containing In
 ``` JSON
 [
   {
-    "name": "Entity and numeric character references",
+    "name": "test",
     "tests": [
       {
-        "markdown": "&copy\n",
-        "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE document SYSTEM \"CommonMark.dtd\">\n\n<document xmlns=\"http://commonmark.org/xml/1.0\">\n  <paragraph>\n    <text>&amp;</text>\n    <text>copy</text>\n  </paragraph>\n</document>\n",
-        "example": 29
+        "markdown": "*a*\n",
+        "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<!DOCTYPE document SYSTEM \"CommonMark.dtd\">\r\n\r\n<document xmlns=\"http://commonmark.org/xml/1.0\">\r\n\t<paragraph>\r\n\t\t<emph>\r\n\t\t\t<text>a</text>\r\n\t\t</emph>\r\n\t</paragraph>\r\n</document>",
+        "example": 0
       }
     ]
   }
@@ -155,7 +155,7 @@ The output of MarkXConsole is only produced with the option `parse`, and it can 
 
 - JSON with the results included
 
-        check -I <JSON>
+        check -I <JSON_file>
 
 - XML file against a single result
 
