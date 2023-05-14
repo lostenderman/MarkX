@@ -134,7 +134,7 @@ The output of MarkXConsole is only produced with the option `parse`, and it can 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://github.com/lostenderman/MarkX/assets/36799087/be6b4d65-5397-48ba-b703-504ab687e60a">
   <source media="(prefers-color-scheme: light)" srcset="https://github.com/lostenderman/MarkX/assets/36799087/590f5ef1-ced5-4cbe-a924-6e8ab4770bc5">
-  <img alt="Directory tree" src="https://user-images.githubusercontent.com/25423296/163456779-a8556205-d0a5-45e2-ac17-42d089e3c3f8.png" width="150">
+  <img alt="Directory tree" src="https://github.com/lostenderman/MarkX/assets/36799087/590f5ef1-ced5-4cbe-a924-6e8ab4770bc5" width="150">
 </picture>
 
 ### Examples
