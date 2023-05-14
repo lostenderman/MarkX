@@ -92,7 +92,7 @@ The MarkX input consists of one or more Input files or directories containing In
     "tests": [
       {
         "markdown": "*a*\n",
-        "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<!DOCTYPE document SYSTEM \"CommonMark.dtd\">\r\n\r\n<document xmlns=\"http://commonmark.org/xml/1.0\">\r\n\t<paragraph>\r\n\t\t<emph>\r\n\t\t\t<text>a</text>\r\n\t\t</emph>\r\n\t</paragraph>\r\n</document>",
+        "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE document SYSTEM \"CommonMark.dtd\">\n\n<document xmlns=\"http://commonmark.org/xml/1.0\">\n\t<paragraph>\n\t\t<emph>\n\t\t\t<text>a</text>\n\t\t</emph>\n\t</paragraph>\n</document>",
         "example": 0
       }
     ]
