@@ -129,13 +129,7 @@ The output of MarkXConsole is only produced with the option `parse`, and it can 
        
 
 2. JSON (default) - new property `output`
-3. Directory tree
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/lostenderman/MarkX/assets/36799087/be6b4d65-5397-48ba-b703-504ab687e60a">
-  <source media="(prefers-color-scheme: light)" srcset="https://github.com/lostenderman/MarkX/assets/36799087/590f5ef1-ced5-4cbe-a924-6e8ab4770bc5">
-  <img alt="Directory tree" src="https://github.com/lostenderman/MarkX/assets/36799087/590f5ef1-ced5-4cbe-a924-6e8ab4770bc5" width="150">
-</picture>
+3. Directory tree - files grouped in section directories
 
 ### Examples
 
