@@ -1,12 +1,18 @@
 using System.Text.Json.Serialization;
 
-namespace MarkX.Core
+namespace MarkXConsole
 {
 	public class SectionFile
 	{
+		[JsonIgnore]
 		public FileInfo? FileInfo { get; set; }
+
+		[JsonIgnore]
 		public FileType FileType { get; set; }
+
+		[JsonIgnore]
 		public string? RawContent { get; set; }
+		public string? Name { get; set; }
 		public List<Section> Sections { get; set; } = new List<Section>();
 
 		[JsonIgnore]

@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace MarkX.ConsoleUI
+namespace MarkXConsole
 {
 	[Verb("parse", HelpText = "Parse file(s) and directories of files.")]
 	public class ParseOptions : Options
