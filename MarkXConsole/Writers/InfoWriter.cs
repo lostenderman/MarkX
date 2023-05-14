@@ -34,6 +34,7 @@ namespace MarkXConsole
 				Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
 				DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+				WriteIndented = true
 			};
 			string? serialized = JsonSerializer.Serialize(outputInfo, jsonOptions);
 			Console.WriteLine(serialized);
