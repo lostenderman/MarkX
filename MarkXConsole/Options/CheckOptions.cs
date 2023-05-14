@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace MarkX.ConsoleUI
+namespace MarkXConsole
 {
 	[Verb("check", HelpText = "Check file(s) and directories of files.")]
 	public class CheckOptions : Options

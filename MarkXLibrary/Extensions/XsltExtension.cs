@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace MarkX.Core.Extensions
+namespace MarkXLibrary
 {
 	public class XsltExtension
 	{

@@ -1,9 +1,7 @@
 ﻿using CommandLine;
 using CommandLine.Text;
-using MarkX.ConsoleUI.Runners;
-using MarkX.CommandParser;
 
-namespace MarkX.ConsoleUI
+namespace MarkXConsole
 {
 	class Program
 	{
@@ -20,7 +18,8 @@ namespace MarkX.ConsoleUI
 
 		static int DisplayHelp(ParserResult<object> parserResult)
 		{
-			Console.WriteLine(HelpText.AutoBuild(parserResult, h => {
+			Console.WriteLine(HelpText.AutoBuild(parserResult, h =>
+			{
 				h.Heading = "MarkX 1.0.0";
 				h.OptionComparison = Comparator.RequiredThenAlphaShortComparison;
 				return h;

@@ -1,7 +1,6 @@
-﻿using MarkX.Core;
-using System.Text.Json;
+﻿using System.Text.Json;
 
-namespace MarkX.ConsoleUI
+namespace MarkXConsole
 {
 	public static class Reader
 	{
@@ -57,6 +56,7 @@ namespace MarkX.ConsoleUI
 			{
 				FileInfo = new FileInfo(path)
 			};
+			file.Name = file.FileInfo.Name;
 			using (StreamReader sr = file.FileInfo.OpenText())
 			{
 				file.RawContent = sr.ReadToEnd();

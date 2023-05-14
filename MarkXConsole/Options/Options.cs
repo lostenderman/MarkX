@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace MarkX.ConsoleUI
+namespace MarkXConsole
 {
 	public class Options
 	{

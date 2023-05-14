@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MarkX.Core
+namespace MarkXConsole
 {
 	public class Section
 	{

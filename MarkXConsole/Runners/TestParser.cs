@@ -1,6 +1,6 @@
-﻿using MarkX.Core;
+﻿using MarkXLibrary;
 
-namespace MarkX.ConsoleUI.Runners
+namespace MarkXConsole
 {
 	public static class TestParser
 	{
@@ -13,7 +13,7 @@ namespace MarkX.ConsoleUI.Runners
 
 			if (!options.Quiet)
 			{
-				InfoWriter.PrintParsingResults(options, inputFiles);
+				InfoWriter.PrintResults(inputFiles, false);
 			}
 			ExportParsedTests(options, inputFiles);
 		}
@@ -120,7 +120,8 @@ namespace MarkX.ConsoleUI.Runners
 								inputFile.FileType = FileType.XML;
 							}
 							test.IsValid = true;
-						} catch (System.Xml.XmlException)
+						}
+						catch (System.Xml.XmlException)
 						{
 							if (inputFile.FileType == FileType.PossiblyXML)
 							{
@@ -137,7 +138,7 @@ namespace MarkX.ConsoleUI.Runners
 							}
 							continue;
 						}
-						
+
 						test.Output = parsed;
 					}
 					section.UpdatePassingStatus();

@@ -1,6 +1,6 @@
-﻿using MarkX.Core;
+﻿using MarkXLibrary;
 
-namespace MarkX.ConsoleUI.Runners
+namespace MarkXConsole
 {
 	public static class TestChecker
 	{
@@ -17,7 +17,7 @@ namespace MarkX.ConsoleUI.Runners
 
 			if (!options.Quiet)
 			{
-				InfoWriter.PrintCheckingResults(options, inputFiles);
+				InfoWriter.PrintResults(inputFiles, true);
 			}
 		}
 

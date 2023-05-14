@@ -1,4 +1,4 @@
-namespace MarkX.Core
+namespace MarkXConsole
 {
 	public enum FileType
 	{

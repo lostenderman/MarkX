@@ -1,9 +1,9 @@
-using MarkX.Core;
+using MarkXLibrary;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace MarkX.ConsoleUI
+namespace MarkXConsole
 {
 	public static class Writer
 	{
