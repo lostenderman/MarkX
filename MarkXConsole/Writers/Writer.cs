@@ -76,6 +76,7 @@ namespace MarkXConsole
 				Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
 				DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+				WriteIndented = true,
 			};
 			string? serialized = JsonSerializer.Serialize(sections, jsonOptions);
 			using StreamWriter sw = new(options.Output);
