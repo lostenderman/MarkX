@@ -165,7 +165,7 @@ This section shows various examples of using the `parse` and `check` verbs. Inpu
     
     - directory of top-level XML files against a single result
     
-            parse -t -I <directory> -R <test_file>
+            check -t -I <directory> -R <test_file>
     
     - XML file against a single result with the `line_blocks` extension enabled
     
