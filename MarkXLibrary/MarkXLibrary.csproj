@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<None Remove="mapping.xslt" />
+    <None Remove="mapping.xslt" />
   </ItemGroup>
 
   <ItemGroup>
-	<EmbeddedResource Include="mapping.xslt" />
+    <EmbeddedResource Include="mapping.xslt" />
   </ItemGroup>
 
 </Project>
