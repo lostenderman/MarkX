@@ -133,7 +133,7 @@ The output of MarkXConsole is only produced with the option `parse`, and it can 
 
 ### Examples
 
-This section displays various parsing and checking examples. Input and output file arguments in angle brackets represent the paths to the respective files.
+This section shows various examples of using the `parse` and `check` verbs. Input and output file arguments in angle brackets represent the paths to the respective files or directories.
 
 - `parse`
 
