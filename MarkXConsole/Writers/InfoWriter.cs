@@ -15,7 +15,7 @@ namespace MarkXConsole
             var output = new Info
             {
                 InvalidFiles = inputFiles.Where(x => x.FileType == FileType.Invalid).ToList(),
-                InvalidXmls = GetInvalidXMLs(inputFiles),
+                InvalidXMLs = GetInvalidXMLs(inputFiles),
                 Summary = GetSummary(inputFiles)
             };
 
@@ -24,10 +24,10 @@ namespace MarkXConsole
                 output.FailingTests = GetFailingTests(inputFiles);
             }
 
-            Serialize(output);
+            Console.WriteLine(Serialize(output));
         }
 
-        private static void Serialize(Info outputInfo)
+        private static string Serialize(Info outputInfo)
         {
             var jsonOptions = new JsonSerializerOptions
             {
@@ -36,8 +36,7 @@ namespace MarkXConsole
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = true
             };
-            string? serialized = JsonSerializer.Serialize(outputInfo, jsonOptions);
-            Console.WriteLine(serialized);
+            return JsonSerializer.Serialize(outputInfo, jsonOptions);
         }
 
         private static List<SectionFile> GetFiles(List<SectionFile> inputFiles,
