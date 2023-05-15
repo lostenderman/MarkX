@@ -44,7 +44,7 @@ Parses input files and into an output file (JSON by default).
 - `-t, --tree`: parses the tests into a directory tree
 - `-f, --file`: writes the result of parsing into a text file if the input is a single valid test
 - `-e, --extensions`: enables listed extensions
-- `-g, --group-sections`: groups tests into sections based on the name of the section to which they belong
+- `-u, --ungroup-sections`: processes the tests as a single array of tests, ignoring the sections
 - `-c, --code-indented`: overwrites the default rendering of the `code_block` from fenced code to an indented code
 - `-i, --isolate-sections`: prevents identically named sections in different files from being merged
 - `-m, --exclude-markdown`: excludes the Markdown input from the generated result
@@ -56,7 +56,7 @@ Checks input files against a provided result file.
 
 - `-R, --result`: specifies a file with a test result with which the tests are checked against
 - `-e, --extensions`: enables listed extensions
-- `-g, --group-sections`: groups tests into sections based on the name of the section to which they belong
+- `-u, --ungroup-sections`: processes the tests as a single array of tests, ignoring the sections
 - `-c, --code-indented`: overwrites the default rendering of the `code_block` from fenced code to an indented code
 - `-r, --own-result`: makes the tests prioritise their expected result over the single provided one
 
