@@ -25,7 +25,7 @@ namespace MarkXConsole
 				return;
 			}
 
-			if (!options.GroupSections)
+			if (options.UngroupSections)
 			{
 				ResetSectionNames(inputFiles);
 			}

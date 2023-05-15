@@ -7,8 +7,8 @@ namespace MarkXConsole
 		[Option('I', "input", Required = true, HelpText = "Input file(s) and directories of files to be processed. Directories will be recursively searched for files.")]
 		public IEnumerable<string>? Input { get; set; }
 
-		[Option('g', "group-sections", Required = false, HelpText = "Group tests to sections.")]
-		public bool GroupSections { get; set; }
+		[Option('u', "ungroup-sections", Required = false, HelpText = "Process section groups as a single array of tests.")]
+		public bool UngroupSections { get; set; }
 
 		[Option('c', "code-indented", Required = false, HelpText = "Render the default code element as indented code, rather than fenced code")]
 		public bool IndentCode { get; set; }

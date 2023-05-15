@@ -48,6 +48,9 @@ namespace MarkXLibrary
 			{
 				return false;
 			}
+			generated = generated.ReplaceLineEndings("\n");
+			expected = expected.ReplaceLineEndings("\n");
+
 			var expectedLines = expected.Split('\n');
 			int markdownInputStartLineIndex = -1;
 			int markdownInputEndLineIndex = -1;
