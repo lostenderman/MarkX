@@ -133,25 +133,25 @@ The output of MarkXConsole is only produced with the option `parse`, and it can 
 
 ### Examples
 
-This section displays various parsing and checking examples. Input and output arguments in angle brackets `<>` represent the paths to the respective files.
+This section displays various parsing and checking examples. Input and output file arguments in angle brackets represent the paths to the respective files.
 
 - `parse`
 
     - JSON to JSON
-    
+
             parse -I <JSON_file> -O <JSON_file>
-    
+
     - JSON to a directory tree
-    
+
             parse -t -I <JSON_file> -O <directory>
-    
+
+    - XML file with the `code_block` rendering overwritten
+
+            parse -cf -I <XML_file> -O <test_file>
+
     - directory of top-level XML files to a directory tree
-    
+
             parse -t -I <directory> -O <directory>
-    
-    - multiple test files with the `code_block` rendering overwritten and the tests grouped into sections
-    
-            parse -cg -I <file> <file> -O <JSON_file>
 
 - `check`
 
