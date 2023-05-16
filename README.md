@@ -15,7 +15,9 @@ It consists of a library - MarkXLibrary, that performs this conversion and a com
 
 #### Third-party libraries
 
-- [CommandLine library](https://github.com/commandlineparser/commandline)
+- [Command Line Parser Library][GHCL]
+
+[GHCL]: https://github.com/commandlineparser/commandline
 
 ## Quick example
 
@@ -33,40 +35,40 @@ It consists of a library - MarkXLibrary, that performs this conversion and a com
 
 ### Command-line interface
 
-MarkX defines the following verbs and their options.
+MarkX uses the [Command Line Parser Library][GHCL] to parse command-line arguments. Two verbs are defined, each with its own set of allowed options. However, both verbs also share a common set of options.
 
 #### `parse` 
-Parses input files and into an output file (JSON by default).
+Parses the tests within the input files into the output file.
 
-- `-I, --input`: defines input files and directories with top-level input files for parsing
+- `-O <output>, --output <output>`: defines an output file or a directory name with the option `-t` enabled
 
-- `-O, --output`: defines an output file or a directory name with the option `-t` enabled
 - `-t, --tree`: parses the tests into a directory tree
-- `-f, --file`: writes the result of parsing into a text file if the input is a single valid test
-- `-e, --extensions`: enables listed extensions
-- `-u, --ungroup-sections`: processes the tests as a single array of tests, ignoring the sections
-- `-c, --code-indented`: overwrites the default rendering of the `code_block` from fenced code to an indented code
-- `-i, --isolate-sections`: prevents identically named sections in different files from being merged
-- `-m, --exclude-markdown`: excludes the Markdown input from the generated result
+- `-f, --file`: writes the result of parsing into a single file if the input is a single valid test
+- `-i, --full-index`: prefixes a name of an output file with the name of its section
 
 #### `check`
-Checks input files against a provided result file.
+Checks tests in input files against the provided result file.
 
-- `-I, --input`: defines input files and directories with top-level input files for parsing
+- `-R <result>, --result <result>`: specifies a result file
 
-- `-R, --result`: specifies a file with a test result with which the tests are checked against
-- `-e, --extensions`: enables listed extensions
-- `-u, --ungroup-sections`: processes the tests as a single array of tests, ignoring the sections
-- `-c, --code-indented`: overwrites the default rendering of the `code_block` from fenced code to an indented code
 - `-r, --own-result`: makes the tests prioritise their expected result over the single provided one
 
-Alternatively, the option `help` can be used to display information about MarkX or any of the verbs.
+#### Shared options
+
+- `-I <input> [<input>...], --input <input> [<input>...]`: defines input files and directories with top-level input files for parsing
+
+- `-e [<extension>...], --extensions [<extension>...]`: enables listed extensions
+- `-u, --ungroup-sections`: processes the tests as a single array of tests, ignoring the sections
+- `-c, --code-indented`: overwrites the default rendering of the `code_block` from fenced code to an indented code
+- `-s, --isolate-sections`: prevents identically named sections in different files from being merged
+- `-m, --exclude-markdown`: excludes the Markdown input from the generated result
+- `-q, --quiet`: suppresses printing results to console
 
 ### File specification
 
 #### Input
 
-The MarkX input consists of one or more Input files or directories containing Input files. An Input file may either be in an XML or a JSON format.
+The input consists of one or more input files or directories containing input files. An input file may either be in an XML or a JSON format.
 
 1. XML - a single test
 
@@ -83,7 +85,7 @@ The MarkX input consists of one or more Input files or directories containing In
 </document>
 ```
 
-2. JSON - a list of tests grouped by a section name, with additional properties
+2. JSON - an array of sections with tests
 
 ``` JSON
 [
@@ -104,9 +106,9 @@ The only required property is `xml`.
 
 #### Output
 
-The output of MarkXConsole is only produced with the option `parse`, and it can take several forms:
+The output files are only produced with the option `parse`, and they can take several forms:
 
-1. Test result/file - only produced with a single valid test as an input
+1. Test result/file
 
     - Test result
 
