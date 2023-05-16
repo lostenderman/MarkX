@@ -1,4 +1,5 @@
 using MarkXLibrary;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -54,14 +55,21 @@ namespace MarkXConsole
         public static int ExportTest(ParseOptions options, Test test, string destination)
         {
             using StreamWriter sw = new(destination);
+            StringBuilder stringBuilder = new();
             if (test.Markdown != null && !options.ExcludeMarkdown)
             {
-                sw.WriteLine(ResourceStrings.MarkdownInputStart);
-                sw.Write(test.Markdown);
-                sw.WriteLine(ResourceStrings.MarkdownInputEnd);
+                stringBuilder.AppendLine(ResourceStrings.MarkdownInputStart);
+                var normalizedMarkdown = test.Markdown.ReplaceLineEndings();
+                stringBuilder.Append(normalizedMarkdown);
+                if (!normalizedMarkdown.EndsWith(Environment.NewLine)) 
+                {
+                    stringBuilder.Append(Environment.NewLine);
+                }
+                stringBuilder.AppendLine(ResourceStrings.MarkdownInputEnd);
             }
 
-            sw.Write(string.Join("\n", test.Output));
+            stringBuilder.Append(test.Output);
+            sw.Write(stringBuilder.ToString());
             return 0;
         }
 

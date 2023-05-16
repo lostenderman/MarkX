@@ -48,10 +48,10 @@ namespace MarkXLibrary
             {
                 return false;
             }
-            generated = generated.ReplaceLineEndings("\n");
-            expected = expected.ReplaceLineEndings("\n");
+            generated = generated.ReplaceLineEndings();
+            expected = expected.ReplaceLineEndings();
 
-            var expectedLines = expected.Split('\n');
+            var expectedLines = expected.Split(Environment.NewLine);
             int markdownInputStartLineIndex = -1;
             int markdownInputEndLineIndex = -1;
 
@@ -82,7 +82,7 @@ namespace MarkXLibrary
                 }
                 index++;
             }
-            var testResult = string.Join('\n', expectedLines, markdownInputEndLineIndex + 1, expectedLines.Length - markdownInputEndLineIndex - 1);
+            var testResult = string.Join(Environment.NewLine, expectedLines, markdownInputEndLineIndex + 1, expectedLines.Length - markdownInputEndLineIndex - 1);
             return generated == testResult;
         }
 
@@ -111,7 +111,7 @@ namespace MarkXLibrary
                 Xslt.Transform(xmlReader, xsltArguments, xmlWriter);
                 output = stringWriter.ToString();
             }
-            return output.ReplaceLineEndings("\n");
+            return output;
         }
     }
 }

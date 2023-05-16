@@ -23,10 +23,10 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
 
         <xsl:choose>
             <xsl:when test="substring($str, string-length($str), 1)='&#10;'">
-                <xsl:value-of select="substring($str, 1, string-length($str) - 1)" />
+                <xsl:value-of select="substring($str, 1, string-length($str) - 1)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="$str" />
+                <xsl:value-of select="$str"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -42,17 +42,17 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
             <xsl:choose>
                 <xsl:when test="$first-extension=''">
                     <xsl:if test="$current-extensions=$extension-name">
-                        <xsl:value-of select="'true'" />
+                        <xsl:value-of select="'true'"/>
                     </xsl:if>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:choose>
                         <xsl:when test="$first-extension=$extension-name">
-                            <xsl:value-of select="'true'" />
+                            <xsl:value-of select="'true'"/>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:call-template name="is-extension-enabled">
-                                <xsl:with-param name="extension-name" select="$extension-name" />
+                                <xsl:with-param name="extension-name" select="$extension-name"/>
                                 <xsl:with-param name="current-extensions" select="$remaining-extensions"/>
                             </xsl:call-template>
                         </xsl:otherwise>
@@ -86,7 +86,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     </xsl:template>
 
     <xsl:template name="extract-comment-content">
-        <xsl:param name="content" />
+        <xsl:param name="content"/>
         <xsl:value-of select="substring($content, 5, string-length($content) - 7)"/>
     </xsl:template>
 
@@ -242,37 +242,36 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>
         </xsl:for-each>
-        <xsl:for-each select="cm:linebreak|cm:item">
-            <xsl:apply-templates select="."></xsl:apply-templates>
-        </xsl:for-each>
     </xsl:template>
 
     <xsl:template name="inline">
-        <xsl:variable name="sub">
-            <xsl:for-each select="cm:*">
-                <xsl:choose>
-                    <xsl:when test="local-name()='text'">
-                        <xsl:apply-templates select="." mode="inline"/>
-                    </xsl:when>
-                    <xsl:when test="local-name()='softbreak'">
-                        <xsl:call-template name="inline-softbreak"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:variable name="els">
-                            <xsl:apply-templates select="." />
-                        </xsl:variable>
-
-                        <xsl:call-template name="parenthesise-group">
-                            <xsl:with-param name="str" select="$els"/>
-                        </xsl:call-template>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:for-each>
-        </xsl:variable>
-
-        <xsl:value-of select="$sub"/>
+        <xsl:param name="is-nested"/>
+        <xsl:for-each select="cm:strong|cm:emph|cm:code|cm:html_inline|cm:softbreak|cm:linebreak|cm:text|cm:link|cm:image">
+            <xsl:choose>
+                <xsl:when test="$is-nested='false'">
+                    <xsl:apply-templates select="."/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:choose>
+                        <xsl:when test="local-name()='text'">
+                            <xsl:apply-templates select="." mode="inline"/>
+                        </xsl:when>
+                        <xsl:when test="local-name()='softbreak'">
+                            <xsl:call-template name="inline-softbreak"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:call-template name="parenthesise-group">
+                                <xsl:with-param name="str">
+                                    <xsl:apply-templates select="."/>
+                                </xsl:with-param>
+                            </xsl:call-template>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
     </xsl:template>
-
+    
     <!-- ROOT -->
 
     <xsl:template match="/">
@@ -343,7 +342,9 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     </xsl:template>
 
     <xsl:template match="cm:paragraph">
-        <xsl:apply-templates select="cm:*"/>
+        <xsl:call-template name="inline">
+            <xsl:with-param name="is-nested" select="'false'"/>
+        </xsl:call-template>
     </xsl:template>
 
     <xsl:template match="cm:softbreak">
@@ -395,7 +396,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
                 </xsl:if>
             </xsl:with-param>
             <xsl:with-param name="content">
-                <xsl:apply-templates select="cm:*"/>
+                <xsl:apply-templates select="cm:item"/>
             </xsl:with-param>
         </xsl:call-template>
     </xsl:template>
@@ -430,7 +431,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     <!-- INLINE -->
 
     <xsl:template match="cm:heading">
-        <xsl:variable name="latest-heading" select="preceding::cm:heading[1]" />
+        <xsl:variable name="latest-heading" select="preceding::cm:heading[1]"/>
         <xsl:call-template name="close-sections">
             <xsl:with-param name="previous" select="$latest-heading/@level"/>
             <xsl:with-param name="current" select="@level"/>
@@ -553,7 +554,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
             <xsl:when test="$indented-code">
                 <xsl:variable name="content">
                     <xsl:call-template name="remove-last">
-                        <xsl:with-param name="str" select="." />
+                        <xsl:with-param name="str" select="."/>
                     </xsl:call-template>
                 </xsl:variable>
 
@@ -572,7 +573,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
                     <xsl:with-param name="content">
                         <xsl:variable name="content">
                             <xsl:call-template name="remove-last">
-                                <xsl:with-param name="str" select="." />
+                                <xsl:with-param name="str" select="."/>
                             </xsl:call-template>
                         </xsl:variable>
 
@@ -672,8 +673,8 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     </xsl:template>
 
     <xsl:template name="parenthesise-text">
-        <xsl:param name="str" />
-        <xsl:param name="inline" />
+        <xsl:param name="str"/>
+        <xsl:param name="inline"/>
 
         <xsl:choose>
             <xsl:when test="$inline='true'">
@@ -689,7 +690,7 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     </xsl:template>
 
     <xsl:template name="parenthesise-group">
-        <xsl:param name="str" />
+        <xsl:param name="str"/>
 
         <xsl:if test="$str != ''">
 
@@ -702,11 +703,11 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:call-template name="parenthesise-text">
-                        <xsl:with-param name="str" select="$first" />
+                        <xsl:with-param name="str" select="$first"/>
                         <xsl:with-param name="inline" select="'true'"/>
                     </xsl:call-template>
                     <xsl:call-template name="parenthesise-group">
-                        <xsl:with-param name="str" select="$other" />
+                        <xsl:with-param name="str" select="$other"/>
                     </xsl:call-template>
                 </xsl:otherwise>
             </xsl:choose>
@@ -778,9 +779,9 @@ xmlns:cm="http://commonmark.org/xml/1.0" xmlns:ext="mark:ext">
     <xsl:template match="cm:line_block">
         <xsl:variable name="is-enabled">
             <xsl:call-template name="is-extension-enabled">
-                <xsl:with-param name="extension-name" select="'line_blocks'" />
+                <xsl:with-param name="extension-name" select="'line_blocks'"/>
                 <xsl:with-param name="current-extensions">
-                    <xsl:copy-of select="$extensions" />
+                    <xsl:copy-of select="$extensions"/>
                 </xsl:with-param>
             </xsl:call-template>
         </xsl:variable>
