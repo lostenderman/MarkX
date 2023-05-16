@@ -59,7 +59,7 @@ Checks tests in input files against the provided result file.
 
 - `-e [<extension>...], --extensions [<extension>...]`: enables listed extensions
 - `-u, --ungroup-sections`: processes the tests as a single array of tests, ignoring the sections
-- `-c, --code-indented`: overwrites the default rendering of the `code_block` from fenced code to an indented code
+- `-c, --code-indented`: overwrites the default `code_block` rendering from fenced code to an indented code
 - `-s, --isolate-sections`: prevents identically named sections in different files from being merged
 - `-m, --exclude-markdown`: excludes the Markdown input from the generated result
 - `-q, --quiet`: suppresses printing results to console
