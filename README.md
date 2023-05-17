@@ -45,6 +45,7 @@ Parses the tests within the input files into the output file.
 - `-t, --tree`: parses the tests into a directory tree
 - `-f, --file`: writes the result of parsing into a single file if the input is a single valid test
 - `-i, --full-index`: prefixes a name of an output file with the name of its section
+- `-x, --include-example`: includes example numbers in tests
 
 #### `check`
 Checks tests in input files against the provided result file.
