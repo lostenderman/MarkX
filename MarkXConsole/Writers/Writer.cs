@@ -58,6 +58,10 @@ namespace MarkXConsole
             StringBuilder stringBuilder = new();
             if (test.Markdown != null && !options.ExcludeMarkdown)
             {
+                if (options.IncludeExampleNumber)
+                {
+                    stringBuilder.AppendLine($"% \"example\": {test.Example}");
+                }
                 stringBuilder.AppendLine(ResourceStrings.MarkdownInputStart);
                 var normalizedMarkdown = test.Markdown.ReplaceLineEndings();
                 stringBuilder.Append(normalizedMarkdown);
