@@ -19,5 +19,8 @@ namespace MarkXConsole
 
         [Option('i', "full-index", Required = false, HelpText = "Include the section name in the test file name.")]
         public bool FullIndex { get; set; }
+
+        [Option('x', "include-example", Required = false, HelpText = "Include example numbers in tests.")]
+        public bool IncludeExampleNumber { get; set; }
     }
 }
