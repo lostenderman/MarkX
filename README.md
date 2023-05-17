@@ -40,7 +40,7 @@ MarkX uses the [Command Line Parser Library][GHCL] to parse command-line argumen
 #### `parse` 
 Parses the tests within the input files into the output file.
 
-- `-O <output>, --output <output>`: defines an output file or a directory name with the option `-t` enabled
+- `-O <file>, --output <file>`: defines an output file or a directory name with the option `-t` enabled
 
 - `-t, --tree`: parses the tests into a directory tree
 - `-f, --file`: writes the result of parsing into a single file if the input is a single valid test
@@ -49,13 +49,13 @@ Parses the tests within the input files into the output file.
 #### `check`
 Checks tests in input files against the provided result file.
 
-- `-R <result>, --result <result>`: specifies a result file
+- `-R <file>, --result <file>`: specifies a result file
 
 - `-r, --own-result`: makes the tests prioritise their expected result over the single provided one
 
 #### Shared options
 
-- `-I <input> [<input>...], --input <input> [<input>...]`: defines input files and directories with top-level input files for parsing
+- `-I <file> [<file>...], --input <file> [<file>...]`: defines input files and directories with top-level input files for parsing
 
 - `-e [<extension>...], --extensions [<extension>...]`: enables listed extensions
 - `-u, --ungroup-sections`: processes the tests as a single array of tests, ignoring the sections
